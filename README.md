@@ -39,7 +39,7 @@ The app draws on five datasets spanning Census 2021 LSOA-level demographics, DWP
 | [RM006 — Age of youngest dependent child by household type](https://www.nomisweb.co.uk/) | Census 2021 | ONS Nomis | Westminster LSOAs | 2021 |
 | [RM12 — Dependent children by ethnic group of HRP](https://www.nomisweb.co.uk/) | Census 2021 | ONS Nomis | Westminster LSOAs | 2021 |
 | [RM033 — Ethnic group of dependent child by sex](https://www.nomisweb.co.uk/) | Census 2021 | ONS Nomis | Westminster LSOAs | 2021 |
-| Westminster LSOA boundaries | ONS Open Geography Portal | ONS | Westminster LSOAs (TopoJSON) | 2011 |
+| [Westminster LSOA boundaries](https://geoportal.statistics.gov.uk/) | ONS Open Geography Portal | ONS | Westminster LSOAs (GeoJSON, 2021 boundaries) | 2021 |
 | Local Authority boundaries | ONS Open Geography Portal | ONS | UK LAs (TopoJSON) | 2017 |
 
 **CIPFA statistical neighbours used:** Westminster · Kensington & Chelsea · Camden · Hammersmith & Fulham · Islington · Wandsworth.
@@ -66,7 +66,7 @@ childrens_demographics_wcc/
     ├── RM006_age_of_youngest_dependent_child_by_household_type.xlsx  # Census 2021
     ├── RM12_dependent_children_by_ethnic_group_of_HRP.xlsx           # Census 2021
     ├── RM033_ethic_group_dependent_child_by_sex.xlsx                 # Census 2021
-    ├── LSOA_WCC (1).json           # Westminster LSOA boundaries (TopoJSON)
+    ├── ONS_LSOA_2021 (1).json      # Westminster LSOA boundaries (GeoJSON, 2021)
     └── Local_Authority_UK.json     # UK Local Authority boundaries (TopoJSON)
 ```
 
@@ -130,7 +130,7 @@ The sidebar also has an **📥 Export full deck** button that packages all curre
 
 - **Child poverty figures** are after-housing-costs (AHC) relative poverty for children aged 0–15. The app reads `2_AHC_Relative_LA.csv` and `4_AHC_Relative_Ward.csv` (extracted from the DWP publication) in preference to the original `.ods` file, which can be too large for reliable GitHub uploads. If only the `.ods` is present, the app falls back to reading it directly. AHC is generally considered the more meaningful measure as it accounts for housing cost variation across London.
 - **KS4 data** covers state-funded schools only. Small pupil numbers at ethnic group × borough level lead to suppressed cells (shown as "no data"). 2020/21 and 2021/22 figures should be interpreted with caution due to COVID-19 assessment disruption.
-- **Census 2021 LSOA data** uses 2011 LSOA boundaries. Westminster has 128 LSOAs across 18 electoral wards.
+- **Census 2021 LSOA data** uses 2021 LSOA boundaries. Westminster has 123 LSOAs across 18 electoral wards. The boundary file (`ONS_LSOA_2021 (1).json`) is a standard GeoJSON sourced from ONS Open Geography Portal using 2021 LSOA codes that match the Census data directly.
 - **EGDI** is based on IMD 2019 income deprivation domain. "More ethnic inequality" means the distribution of deprivation across ethnic groups within the borough is significantly unequal — not that the borough is more deprived overall.
 - **CIPFA neighbours** are Westminster's six nearest statistical neighbours as defined by CIPFA's 2022 methodology, sourced from Trust for London.
 
