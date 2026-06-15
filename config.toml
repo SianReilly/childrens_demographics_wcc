@@ -1,0 +1,10 @@
+[theme]
+primaryColor = "#00857D"        # WCC primary teal
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F4F0"
+textColor = "#1B2040"
+font = "sans serif"
+
+[server]
+headless = true
+enableCORS = false
