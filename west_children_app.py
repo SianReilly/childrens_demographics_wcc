@@ -65,25 +65,107 @@ NEIGHBOURS = {
 }
 NEIGHBOUR_NAMES = list(NEIGHBOURS.keys())
 
+# Westminster City Council brand palette
+# Primary teal sourced from westminster.gov.uk visual identity
+# Note: confirm exact hex codes against Frontify brand portal
+WCC = {
+    "teal":    "#00857D",   # Primary — Thames leaf green (WCC primary brand colour)
+    "navy":    "#1B2040",   # Dark secondary — headings, sidebar
+    "red":     "#E8342A",   # Accent (use sparingly)
+    "gold":    "#F0A500",   # Warm accent
+    "grey":    "#717171",   # Mid grey — captions
+    "light":   "#F5F4F0",   # Warm off-white background
+    "pale":    "#E8F4F3",   # Pale teal — highlights
+    "text":    "#1B2040",   # Body text
+    "grid":    "#EBEBEB",   # Chart gridlines
+    "white":   "#FFFFFF",
+}
+# Keep ONS as alias so existing chart code still works
 ONS = {
-    "navy":   "#003087", "blue":  "#27A0CC", "green": "#0F8243",
-    "orange": "#F4901E", "pink":  "#EB4A8A", "grey":  "#AAAAAA",
-    "light":  "#D9EAF7", "text":  "#222222", "grid":  "#F0F0F0",
+    "navy":   WCC["navy"],
+    "blue":   WCC["teal"],
+    "green":  WCC["teal"],
+    "orange": WCC["gold"],
+    "pink":   WCC["red"],
+    "grey":   WCC["grey"],
+    "light":  WCC["pale"],
+    "text":   WCC["text"],
+    "grid":   WCC["grid"],
 }
 BOROUGH_COLOURS = {
-    "Westminster":            "#003087", "Kensington & Chelsea":   "#27A0CC",
-    "Camden":                 "#0F8243", "Hammersmith & Fulham":   "#F4901E",
-    "Islington":              "#EB4A8A", "Wandsworth":             "#6B4226",
-    "Kensington and Chelsea": "#27A0CC", "Hammersmith and Fulham": "#F4901E",
+    "Westminster":            "#00857D",  # WCC primary teal
+    "Kensington & Chelsea":   "#1B2040",  # WCC navy
+    "Camden":                 "#E8342A",  # WCC red
+    "Hammersmith & Fulham":   "#F0A500",  # WCC gold
+    "Islington":              "#717171",  # WCC grey
+    "Wandsworth":             "#6B4C3B",  # warm brown
+    "Kensington and Chelsea": "#1B2040",
+    "Hammersmith and Fulham": "#F0A500",
 }
 
 # ── PAGE CONFIG ───────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Westminster Children's Demographics",
                    page_icon="🏙️", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""<style>
-  .source-box{background:#f0f4f8;border-radius:6px;padding:10px 14px;font-size:.82em;color:#555;margin-top:8px}
-  h1,h2{color:#1a1a2e}
-  .stTabs [data-baseweb="tab"]{font-size:.95rem}
+  /* Westminster City Council brand styles */
+  :root {
+    --wcc-teal:  #00857D;
+    --wcc-navy:  #1B2040;
+    --wcc-red:   #E8342A;
+    --wcc-gold:  #F0A500;
+    --wcc-light: #F5F4F0;
+    --wcc-pale:  #E8F4F3;
+  }
+  /* Sidebar */
+  [data-testid="stSidebar"] {
+    background-color: var(--wcc-navy) !important;
+  }
+  [data-testid="stSidebar"] * {
+    color: #ffffff !important;
+  }
+  [data-testid="stSidebar"] a {
+    color: #A8D8D5 !important;
+  }
+  [data-testid="stSidebar"] hr {
+    border-color: rgba(255,255,255,0.2) !important;
+  }
+  /* Headings */
+  h1 { color: var(--wcc-navy) !important; font-family: Arial, sans-serif !important; }
+  h2, h3 { color: var(--wcc-navy) !important; }
+  /* Tabs */
+  .stTabs [data-baseweb="tab"] {
+    font-size: .95rem;
+    font-family: Arial, sans-serif;
+  }
+  .stTabs [aria-selected="true"] {
+    color: var(--wcc-teal) !important;
+    border-bottom: 3px solid var(--wcc-teal) !important;
+  }
+  /* Metric cards */
+  [data-testid="stMetric"] {
+    background: var(--wcc-pale);
+    border-radius: 6px;
+    padding: 12px;
+    border-left: 4px solid var(--wcc-teal);
+  }
+  /* Info boxes */
+  .stAlert {
+    border-left: 4px solid var(--wcc-teal) !important;
+  }
+  /* Source box */
+  .source-box {
+    background: var(--wcc-pale);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: .82em;
+    color: #444;
+    margin-top: 8px;
+    border-left: 3px solid var(--wcc-teal);
+  }
+  /* Main background */
+  .main .block-container {
+    background-color: #FFFFFF;
+  }
 </style>""", unsafe_allow_html=True)
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -285,24 +367,11 @@ def load_wcc_geojson():
         return json.load(f)
 
 @st.cache_data(show_spinner=False)
-def load_la_centroids():
-    """Extract CIPFA neighbour LA centroids from the UK TopoJSON for scatter/bubble maps."""
-    with open(_dp("Local_Authority_UK.json")) as f:
+def load_borough_geojson():
+    """Load London borough boundaries from TopoJSON — used for CIPFA neighbour map."""
+    with open(_dp("Borough_London_LL84.json")) as f:
         topo = json.load(f)
-    obj_key = list(topo["objects"].keys())[0]
-    geoms = topo["objects"][obj_key]["geometries"]
-    nb_codes = set(NEIGHBOURS.values())
-    rows = []
-    for g in geoms:
-        p = g.get("properties", {})
-        if p.get("lad17cd") in nb_codes:
-            rows.append({
-                "la_code": p["lad17cd"],
-                "la_name": p["lad17nm"],
-                "lat":     float(p["lat"]),
-                "lon":     float(p["long"]),
-            })
-    return pd.DataFrame(rows)
+    return json.loads(tp.Topology(topo, object_name="Borough_London_LL84").to_geojson())
 
 # ── PPTX HELPERS ──────────────────────────────────────────────────────────────
 def _fig_to_png(fig):
@@ -339,23 +408,42 @@ def pptx_btn(fig, key, title=""):
         st.caption(f"_PPTX export unavailable: {e}_")
 
 def apply_ons_style(fig, source=""):
-    fig.update_layout(font_family="Arial", font_color=ONS["text"],
-                      plot_bgcolor="white", paper_bgcolor="white",
-                      title_font_size=15, title_font_color="#1a1a2e",
-                      margin=dict(l=50,r=30,t=70,b=55),
-                      legend=dict(orientation="h",yanchor="bottom",y=1.02,x=0))
-    fig.update_xaxes(showgrid=False, linecolor="#cccccc", showline=True)
-    fig.update_yaxes(gridcolor=ONS["grid"], linecolor="white", zeroline=False)
+    """Apply Westminster City Council brand styling to a Plotly figure."""
+    fig.update_layout(
+        font_family="Arial",
+        font_color=WCC["text"],
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        title_font_size=15,
+        title_font_color=WCC["navy"],
+        title_font_family="Arial",
+        margin=dict(l=50,r=30,t=70,b=55),
+        legend=dict(orientation="h",yanchor="bottom",y=1.02,x=0,
+                    font=dict(family="Arial",size=11)),
+    )
+    fig.update_xaxes(showgrid=False, linecolor="#cccccc", showline=True,
+                     tickfont=dict(family="Arial"))
+    fig.update_yaxes(gridcolor=WCC["grid"], linecolor="white", zeroline=False,
+                     tickfont=dict(family="Arial"))
     if source:
-        fig.add_annotation(text=f"<i>Source: {source}</i>",
-                           xref="paper",yref="paper",x=0,y=-0.13,
-                           showarrow=False,font=dict(size=10,color="#777"),align="left")
+        fig.add_annotation(
+            text=f"<i>Source: {source}</i>",
+            xref="paper", yref="paper", x=0, y=-0.13,
+            showarrow=False, font=dict(size=10, color="#666", family="Arial"),
+            align="left")
     return fig
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/en/thumb/1/16/Westminster_City_Council.svg/200px-Westminster_City_Council.svg.png", width=120)
-    st.title("🏙️ Westminster Children")
+    logo_path = _dp("city_of_westminster.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, width=150)
+    else:
+        st.image(
+            "https://raw.githubusercontent.com/SianReilly/childrens_demographics_wcc/main/data/city_of_westminster.png",
+            width=150
+        )
+    st.markdown("## Westminster Children's Dashboard")
     st.markdown("**CIPFA Statistical Neighbours**")
     for b in NEIGHBOUR_NAMES:
         c = BOROUGH_COLOURS.get(b, ONS["navy"])
@@ -381,7 +469,7 @@ with st.spinner("Loading datasets…"):
     df_rm12     = load_rm12()
     df_egdi     = load_egdi()
     wcc_geojson = load_wcc_geojson()
-    df_la_centroids = load_la_centroids()
+    borough_geojson  = load_borough_geojson()
 
 # ── HEADER & METRICS ──────────────────────────────────────────────────────────
 st.title("🏙️ Westminster Children's Demographics")
@@ -451,33 +539,60 @@ with tab1:
 
     st.info("💡 **Finding:** All six boroughs saw child poverty decline 2024→2025. Westminster fell from 27.6% to 26.3%. Kensington & Chelsea is the outlier at ~16%, reflecting its unique wealth distribution.")
 
-    # Geographic map of CIPFA neighbours with poverty rates as bubble size
+    # Choropleth map of CIPFA neighbours shaded by child poverty rate
     st.divider()
     st.subheader("Geographic context — CIPFA statistical neighbours")
-    if not df_la_centroids.empty:
-        df_nb_map = df_nb.merge(
-            df_la_centroids,
-            left_on="Area_Code", right_on="la_code", how="inner"
-        )
-        fig_nb_map = px.scatter_map(
-            df_nb_map, lat="lat", lon="lon",
-            size="Pct_2025", color="Borough",
-            hover_name="Borough",
-            hover_data={"Pct_2025":":.1f","lat":False,"lon":False},
-            color_discrete_map={b:BOROUGH_COLOURS.get(b,ONS["grey"]) for b in df_nb_map["Borough"].unique()},
-            size_max=40, zoom=11,
-            center={"lat":51.505,"lon":-0.17},
-            map_style="carto-positron",
-            title="CIPFA neighbours — bubble size = % children in low income (FYE 2025)",
-            labels={"Pct_2025":"% in low income"},
-        )
-        fig_nb_map.update_layout(height=450, margin=dict(l=0,r=0,t=50,b=0), showlegend=False)
-        st.plotly_chart(fig_nb_map, use_container_width=True)
-        pptx_btn(fig_nb_map, "cipfa_map", "CIPFA neighbours — child poverty rate map")
-        st.markdown(
-            '<div class="source-box">LA boundaries: ONS Open Geography Portal 2017. '
-            'Child poverty: DWP Children in Low Income Families FYE 2025.</div>',
-            unsafe_allow_html=True)
+    nb_codes = list(NEIGHBOURS.values())
+    # Filter GeoJSON to only the 6 CIPFA neighbours
+    nb_gj = {
+        "type": "FeatureCollection",
+        "features": [f for f in borough_geojson["features"]
+                     if f["properties"]["BoroughCod"] in nb_codes]
+    }
+    # Merge poverty data onto borough codes
+    df_nb_map = df_li_la[df_li_la["Area_Code"].isin(nb_codes)].copy()
+    df_nb_map["Borough"] = (df_nb_map["LA"]
+                            .str.replace("and Fulham","& Fulham")
+                            .str.replace("and Chelsea","& Chelsea"))
+    fig_nb_map = px.choropleth_map(
+        df_nb_map,
+        geojson=nb_gj,
+        locations="Area_Code",
+        featureidkey="properties.BoroughCod",
+        color="Pct_2025",
+        hover_name="Borough",
+        hover_data={"Pct_2025":":.1f%","Area_Code":False},
+        color_continuous_scale=[
+            [0.0, "#D9EAF7"],
+            [0.5, "#27A0CC"],
+            [1.0, "#003087"],
+        ],
+        range_color=[
+            df_nb_map["Pct_2025"].min() * 0.9,
+            df_nb_map["Pct_2025"].max() * 1.05,
+        ],
+        zoom=10.5,
+        center={"lat": 51.505, "lon": -0.17},
+        opacity=0.75,
+        map_style="carto-positron",
+        title="Child poverty rate (%) by CIPFA statistical neighbour — FYE 2025",
+        labels={"Pct_2025": "% children in low income"},
+    )
+    # Annotate Westminster clearly
+    fig_nb_map.add_scattermap(
+        lat=[51.5122], lon=[-0.1530],
+        mode="text",
+        text=["Westminster"],
+        textfont=dict(size=13, color="#003087", family="Arial"),
+        showlegend=False,
+    )
+    fig_nb_map.update_layout(height=480, margin=dict(l=0,r=0,t=50,b=0))
+    st.plotly_chart(fig_nb_map, use_container_width=True)
+    pptx_btn(fig_nb_map, "cipfa_map", "CIPFA neighbours — child poverty rate map (FYE 2025)")
+    st.markdown(
+        '<div class="source-box">Borough boundaries: London Datastore. '
+        'Child poverty: DWP Children in Low Income Families, AHC Relative, FYE 2025.</div>',
+        unsafe_allow_html=True)
     st.divider()
 
     st.subheader("Westminster ward-level child poverty (FYE 2025)")
