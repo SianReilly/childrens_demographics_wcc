@@ -17,6 +17,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import topojson as tp
 from pptx import Presentation
 from pptx.util import Inches, Pt
 
@@ -283,6 +284,26 @@ def load_wcc_geojson():
     with open(_dp("ONS_LSOA_2021 (1).json")) as f:
         return json.load(f)
 
+@st.cache_data(show_spinner=False)
+def load_la_centroids():
+    """Extract CIPFA neighbour LA centroids from the UK TopoJSON for scatter/bubble maps."""
+    with open(_dp("Local_Authority_UK.json")) as f:
+        topo = json.load(f)
+    obj_key = list(topo["objects"].keys())[0]
+    geoms = topo["objects"][obj_key]["geometries"]
+    nb_codes = set(NEIGHBOURS.values())
+    rows = []
+    for g in geoms:
+        p = g.get("properties", {})
+        if p.get("lad17cd") in nb_codes:
+            rows.append({
+                "la_code": p["lad17cd"],
+                "la_name": p["lad17nm"],
+                "lat":     float(p["lat"]),
+                "lon":     float(p["long"]),
+            })
+    return pd.DataFrame(rows)
+
 # ── PPTX HELPERS ──────────────────────────────────────────────────────────────
 def _fig_to_png(fig):
     try:
@@ -360,6 +381,7 @@ with st.spinner("Loading datasets…"):
     df_rm12     = load_rm12()
     df_egdi     = load_egdi()
     wcc_geojson = load_wcc_geojson()
+    df_la_centroids = load_la_centroids()
 
 # ── HEADER & METRICS ──────────────────────────────────────────────────────────
 st.title("🏙️ Westminster Children's Demographics")
@@ -428,6 +450,34 @@ with tab1:
         pptx_btn(fig2,"child_poverty_trend","All neighbours: child poverty fell 2024→2025")
 
     st.info("💡 **Finding:** All six boroughs saw child poverty decline 2024→2025. Westminster fell from 27.6% to 26.3%. Kensington & Chelsea is the outlier at ~16%, reflecting its unique wealth distribution.")
+
+    # Geographic map of CIPFA neighbours with poverty rates as bubble size
+    st.divider()
+    st.subheader("Geographic context — CIPFA statistical neighbours")
+    if not df_la_centroids.empty:
+        df_nb_map = df_nb.merge(
+            df_la_centroids,
+            left_on="Area_Code", right_on="la_code", how="inner"
+        )
+        fig_nb_map = px.scatter_map(
+            df_nb_map, lat="lat", lon="lon",
+            size="Pct_2025", color="Borough",
+            hover_name="Borough",
+            hover_data={"Pct_2025":":.1f","lat":False,"lon":False},
+            color_discrete_map={b:BOROUGH_COLOURS.get(b,ONS["grey"]) for b in df_nb_map["Borough"].unique()},
+            size_max=40, zoom=11,
+            center={"lat":51.505,"lon":-0.17},
+            map_style="carto-positron",
+            title="CIPFA neighbours — bubble size = % children in low income (FYE 2025)",
+            labels={"Pct_2025":"% in low income"},
+        )
+        fig_nb_map.update_layout(height=450, margin=dict(l=0,r=0,t=50,b=0), showlegend=False)
+        st.plotly_chart(fig_nb_map, use_container_width=True)
+        pptx_btn(fig_nb_map, "cipfa_map", "CIPFA neighbours — child poverty rate map")
+        st.markdown(
+            '<div class="source-box">LA boundaries: ONS Open Geography Portal 2017. '
+            'Child poverty: DWP Children in Low Income Families FYE 2025.</div>',
+            unsafe_allow_html=True)
     st.divider()
 
     st.subheader("Westminster ward-level child poverty (FYE 2025)")
