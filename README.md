@@ -40,7 +40,9 @@ The app draws on five datasets spanning Census 2021 LSOA-level demographics, DWP
 | [RM12 — Dependent children by ethnic group of HRP](https://www.nomisweb.co.uk/) | Census 2021 | ONS Nomis | Westminster LSOAs | 2021 |
 | [RM033 — Ethnic group of dependent child by sex](https://www.nomisweb.co.uk/) | Census 2021 | ONS Nomis | Westminster LSOAs | 2021 |
 | [Westminster LSOA boundaries](https://geoportal.statistics.gov.uk/) | ONS Open Geography Portal | ONS | Westminster LSOAs (GeoJSON, 2021 boundaries) | 2021 |
-| Local Authority boundaries | ONS Open Geography Portal | ONS | UK LAs (TopoJSON) | 2017 |
+| [London Borough boundaries](https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london) | London Datastore | GLA | London Boroughs (TopoJSON) | 2011 |
+
+> **Brand note:** The app uses Westminster City Council's "Our Westminster Way" brand palette (primary teal `#00857D`, navy `#1B2040`). Confirm exact hex codes against the [Frontify brand portal](https://westminstercitycouncil.frontify.com/d/unm4iUUjYVWG/guidelines#/internal/our-westminster-way) and update `WCC` dict in `west_children_app.py` and `.streamlit/config.toml` if needed.
 
 **CIPFA statistical neighbours used:** Westminster · Kensington & Chelsea · Camden · Hammersmith & Fulham · Islington · Wandsworth.
 Source: [Trust for London CIPFA nearest neighbours](https://trustforlondon.org.uk/data/information-on-cipfa-nearest-statistical-neighbours/)
@@ -67,7 +69,7 @@ childrens_demographics_wcc/
     ├── RM12_dependent_children_by_ethnic_group_of_HRP.xlsx           # Census 2021
     ├── RM033_ethic_group_dependent_child_by_sex.xlsx                 # Census 2021
     ├── ONS_LSOA_2021 (1).json      # Westminster LSOA boundaries (GeoJSON, 2021)
-    └── Local_Authority_UK.json     # UK Local Authority boundaries (TopoJSON)
+    ├── Borough_London_LL84.json    # London borough boundaries (TopoJSON, for CIPFA neighbour map)
 ```
 
 ---
@@ -112,7 +114,7 @@ This app requires no API keys or secrets. No `.env` file is needed.
 | `python-pptx` | 1.0.2 | Per-chart PPTX slide export |
 | `openpyxl` | 3.1.5 | Reading `.xlsx` files |
 | `odfpy` | 1.4.1 | Reading `.ods` files |
-| `topojson` | 1.9 | Converting TopoJSON boundaries to GeoJSON for maps |
+| `topojson` | 1.9 | Converting London borough TopoJSON boundaries to GeoJSON |
 | `kaleido` | 0.2.1 | Rendering Plotly charts to PNG for PPTX export |
 | `numpy` | 2.2.6 | Numerical operations |
 
