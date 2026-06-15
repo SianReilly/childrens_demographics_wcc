@@ -45,7 +45,7 @@ _FILENAME_ALIASES = {
     "LSOA_WCC (1).json": [
         "LSOA_WCC (1).json",
         "LSOA_WCC-1.json",
-        "LSOA_WCC__1_.json",
+        "data/LSOA_WCC (1).json",
         "LSOA_WCC_(1).json",
     ],
     "Local_Authority_UK.json": [
@@ -466,7 +466,7 @@ def load_egdi():
 @st.cache_data(show_spinner=False)
 def load_wcc_geojson():
     """Westminster LSOA boundaries from TopoJSON."""
-    with open(_dp("LSOA_WCC__1_.json")) as f:
+    with open(_dp("data/LSOA_WCC (1).json")) as f:
         topo = json.load(f)
     topo_obj = tp.Topology(topo, object_name="LSOA_WCC")
     return json.loads(topo_obj.to_geojson())
