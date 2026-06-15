@@ -45,6 +45,15 @@ _FILENAME_ALIASES = {
         "LSOA_WCC (1).json",
         "LSOA_WCC_(1).json",
     ],
+    # CSV alternatives for the child poverty ODS file
+    "2_AHC_Relative_LA.csv": [
+        "2_AHC_Relative_LA.csv",
+        "2_AHC_Relative_LA.csv",
+    ],
+    "4_AHC_Relative_Ward.csv": [
+        "4_AHC_Relative_Ward.csv",
+        "4 AHC Relative Ward.csv",
+    ],
 }
 
 _SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
@@ -129,28 +138,52 @@ st.markdown("""
 # ── DATA LOADING ──────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def load_low_income_la():
-    df = pd.read_excel(
-        _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
-        sheet_name="2_AHC_Relative_LA", engine="odf", header=8
-    )
-    df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
+    """Load LA-level child poverty data. Tries CSV first (faster, no ODS dependency),
+    then falls back to the original .ods file."""
+    csv_path = _dp("2_AHC_Relative_LA.csv")
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        # CSV already has correct column names if exported from the app
+        # but handle both raw-export and pre-processed formats
+        if "LA" not in df.columns:
+            df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
+    else:
+        df = pd.read_excel(
+            _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
+            sheet_name="2_AHC_Relative_LA", engine="odf", header=8
+        )
+        df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     df = df.dropna(subset=["Area_Code"])
-    df["Pct_2024"] = pd.to_numeric(df["Pct_2024"], errors="coerce") * 100
-    df["Pct_2025"] = pd.to_numeric(df["Pct_2025"], errors="coerce") * 100
+    df["Pct_2024"] = pd.to_numeric(df["Pct_2024"], errors="coerce")
+    df["Pct_2025"] = pd.to_numeric(df["Pct_2025"], errors="coerce")
+    # If values are fractions (0-1 range), multiply by 100
+    if df["Pct_2024"].dropna().max() <= 1.0:
+        df["Pct_2024"] *= 100
+        df["Pct_2025"] *= 100
     df["N_2024"] = pd.to_numeric(df["N_2024"], errors="coerce")
     df["N_2025"] = pd.to_numeric(df["N_2025"], errors="coerce")
     return df
 
 @st.cache_data(show_spinner=False)
 def load_low_income_ward():
-    df = pd.read_excel(
-        _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
-        sheet_name="4_AHC_Relative_Ward", engine="odf", header=9
-    )
-    df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
+    """Load ward-level child poverty data. Tries CSV first, then falls back to .ods."""
+    csv_path = _dp("4_AHC_Relative_Ward.csv")
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        if "LA" not in df.columns:
+            df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
+    else:
+        df = pd.read_excel(
+            _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
+            sheet_name="4_AHC_Relative_Ward", engine="odf", header=9
+        )
+        df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     df = df.dropna(subset=["Ward_Code"])
-    df["Pct_2024"] = pd.to_numeric(df["Pct_2024"], errors="coerce") * 100
-    df["Pct_2025"] = pd.to_numeric(df["Pct_2025"], errors="coerce") * 100
+    df["Pct_2024"] = pd.to_numeric(df["Pct_2024"], errors="coerce")
+    df["Pct_2025"] = pd.to_numeric(df["Pct_2025"], errors="coerce")
+    if df["Pct_2024"].dropna().max() <= 1.0:
+        df["Pct_2024"] *= 100
+        df["Pct_2025"] *= 100
     df["N_2024"]   = pd.to_numeric(df["N_2024"], errors="coerce")
     df["N_2025"]   = pd.to_numeric(df["N_2025"], errors="coerce")
     df["LA_filled"] = df["LA"].ffill()
