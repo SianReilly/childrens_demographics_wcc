@@ -137,53 +137,51 @@ def _clean_num(series):
 # ── DATA LOADING ──────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def load_low_income_la():
-    """LA-level child poverty data.
-    CSV raw export has 8 metadata rows before the header row (row index 8).
-    10 columns total; we only need the first 6.
-    Percentage values are stored as strings like '26.3%'; counts have commas.
-    """
+    """Load LA-level child poverty data from raw CSV export or ODS."""
     csv_path = _dp("2_AHC_Relative_LA.csv")
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path, header=8, usecols=[0, 1, 2, 3, 4, 5])
+        df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     else:
         df = pd.read_excel(
             _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
-            sheet_name="2_AHC_Relative_LA", engine="odf", header=8,
-            usecols=[0, 1, 2, 3, 4, 5]
+            sheet_name="2_AHC_Relative_LA", engine="odf", header=8
         )
-    df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
+        df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     df = df.dropna(subset=["Area_Code"])
-    df["Pct_2024"] = _clean_pct(df["Pct_2024"])
-    df["Pct_2025"] = _clean_pct(df["Pct_2025"])
-    df["N_2024"]   = _clean_num(df["N_2024"])
-    df["N_2025"]   = _clean_num(df["N_2025"])
+    df["Pct_2024"] = pd.to_numeric(df["Pct_2024"].astype(str).str.replace("%", "", regex=False), errors="coerce")
+    df["Pct_2025"] = pd.to_numeric(df["Pct_2025"].astype(str).str.replace("%", "", regex=False), errors="coerce")
+    if df["Pct_2024"].dropna().max() <= 1.0:
+        df["Pct_2024"] *= 100
+        df["Pct_2025"] *= 100
+    df["N_2024"] = pd.to_numeric(df["N_2024"].astype(str).str.replace(",", "", regex=False), errors="coerce")
+    df["N_2025"] = pd.to_numeric(df["N_2025"].astype(str).str.replace(",", "", regex=False), errors="coerce")
     return df
 
 
 @st.cache_data(show_spinner=False)
 def load_low_income_ward():
-    """Ward-level child poverty data.
-    CSV raw export has 9 metadata rows before the header (row index 9).
-    8 data columns; percentage values are '26.3%' strings; counts have commas.
-    """
+    """Load ward-level child poverty data from raw CSV export or ODS."""
     csv_path = _dp("4_AHC_Relative_Ward.csv")
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path, header=9, usecols=[0, 1, 2, 3, 4, 5, 6, 7])
+        df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     else:
         df = pd.read_excel(
             _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
-            sheet_name="4_AHC_Relative_Ward", engine="odf", header=9,
-            usecols=[0, 1, 2, 3, 4, 5, 6, 7]
+            sheet_name="4_AHC_Relative_Ward", engine="odf", header=9
         )
-    df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
+        df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     df = df.dropna(subset=["Ward_Code"])
-    df["Pct_2024"] = _clean_pct(df["Pct_2024"])
-    df["Pct_2025"] = _clean_pct(df["Pct_2025"])
-    df["N_2024"]   = _clean_num(df["N_2024"])
-    df["N_2025"]   = _clean_num(df["N_2025"])
+    df["Pct_2024"] = pd.to_numeric(df["Pct_2024"].astype(str).str.replace("%", "", regex=False), errors="coerce")
+    df["Pct_2025"] = pd.to_numeric(df["Pct_2025"].astype(str).str.replace("%", "", regex=False), errors="coerce")
+    if df["Pct_2024"].dropna().max() <= 1.0:
+        df["Pct_2024"] *= 100
+        df["Pct_2025"] *= 100
+    df["N_2024"] = pd.to_numeric(df["N_2024"].astype(str).str.replace(",", "", regex=False), errors="coerce")
+    df["N_2025"] = pd.to_numeric(df["N_2025"].astype(str).str.replace(",", "", regex=False), errors="coerce")
     df["LA_filled"] = df["LA"].ffill()
     return df
-
 
 @st.cache_data(show_spinner=False)
 def load_ks4_ethnic():
