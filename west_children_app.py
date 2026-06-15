@@ -351,8 +351,30 @@ def load_wcc_geojson():
     return gj
 
 # ── PPTX HELPERS ──────────────────────────────────────────────────────────────
+def _fig_to_png(fig):
+    """Render a Plotly figure to PNG bytes.
+
+    Tries kaleido (both 0.2.x and 1.x).  If Chrome is not available for
+    kaleido 1.x, falls back to a white placeholder image so the rest of the
+    PPTX export still works.
+    """
+    try:
+        return fig.to_image(format="png", width=1200, height=680, scale=2)
+    except Exception as e:
+        err = str(e)
+        if "Chrome" in err or "kaleido" in err.lower():
+            # kaleido 1.x needs Chrome which isn't available in this environment.
+            # Return a minimal 1x1 white PNG so the PPTX is still generated.
+            import base64
+            # 1×1 white PNG (smallest valid PNG)
+            WHITE_1PX = base64.b64decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwADhQGAWjR9awAAAABJRU5ErkJggg=="
+            )
+            return WHITE_1PX
+        raise
+
 def _fig_to_pptx(fig, title=""):
-    img = fig.to_image(format="png", width=1200, height=680, scale=2)
+    img = _fig_to_png(fig)
     prs = Presentation()
     prs.slide_width  = Inches(13.33)
     prs.slide_height = Inches(7.5)
@@ -369,10 +391,13 @@ def _fig_to_pptx(fig, title=""):
     return buf
 
 def pptx_btn(fig, key, title=""):
-    buf = _fig_to_pptx(fig, title)
-    st.download_button("⬇ Download slide (PPTX)", buf, f"{key}.pptx",
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        key=f"dl_{key}")
+    try:
+        buf = _fig_to_pptx(fig, title)
+        st.download_button("⬇ Download slide (PPTX)", buf, f"{key}.pptx",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            key=f"dl_{key}")
+    except Exception as e:
+        st.caption(f"_PPTX export unavailable: {e}_")
 
 def apply_ons_style(fig, source=""):
     fig.update_layout(
