@@ -3,4 +3,5 @@ plotly
 pandas
 python-pptx
 openpyxl
+topojson
 numpy
