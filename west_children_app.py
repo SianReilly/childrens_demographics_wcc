@@ -32,15 +32,41 @@ import topojson as tp
 warnings.filterwarnings("ignore")
 
 # ── DATA PATHS ────────────────────────────────────────────────────────────────
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+# Maps canonical filenames to possible on-disk aliases.
+# GitHub uploads can rename spaces → spaces, (1) → (1), etc.
+_FILENAME_ALIASES = {
+    "data-key-stage-4-performance__1_.ods": [
+        "data-key-stage-4-performance__1_.ods",
+        "data-key-stage-4-performance (1).ods",
+        "data-key-stage-4-performance_(1).ods",
+    ],
+    "LSOA_WCC__1_.json": [
+        "LSOA_WCC__1_.json",
+        "LSOA_WCC (1).json",
+        "LSOA_WCC_(1).json",
+    ],
+}
 
-def _dp(filename):
-    """Return absolute path - works both from /home/claude and when copied to data/ folder."""
-    local = os.path.join(DATA_DIR, filename)
-    upload = f"/mnt/user-data/uploads/{filename}"
-    if os.path.exists(local):
-        return local
-    return upload
+_SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
+_DATA_SUBDIR = os.path.join(_SCRIPT_DIR, "data")
+_SEARCH_DIRS = [_DATA_SUBDIR, _SCRIPT_DIR, "/mnt/user-data/uploads"]
+
+def _dp(canonical_filename):
+    """Resolve a data filename to an absolute path.
+
+    Search order: data/ subfolder → repo root → /mnt/user-data/uploads.
+    Also tries known filename aliases so the app works whether files are in
+    a data/ subfolder, in the repo root (as uploaded to GitHub), or in the
+    Claude upload area.
+    """
+    aliases = _FILENAME_ALIASES.get(canonical_filename, []) + [canonical_filename]
+    for directory in _SEARCH_DIRS:
+        for alias in aliases:
+            candidate = os.path.join(directory, alias)
+            if os.path.exists(candidate):
+                return candidate
+    # Fall through: return upload path; will raise a clear FileNotFoundError
+    return os.path.join("/mnt/user-data/uploads", canonical_filename)
 
 # ── CONSTANTS ─────────────────────────────────────────────────────────────────
 NEIGHBOURS = {
