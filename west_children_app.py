@@ -290,60 +290,101 @@ def load_ks4_ethnic():
 @st.cache_data(show_spinner=False)
 def load_ks4_time():
     """KS4 time series (all pupils) — Inner London boroughs."""
-    df1 = pd.read_csv(_dp("data-key-stage-4-performance.csv"), header=None, low_memory=False)
+
+    ks4_path = _find_existing(
+        "data-key-stage-4-performance.csv",
+        "data-key-stage-4-performance__1_.csv",
+    )
+    if not ks4_path:
+        raise FileNotFoundError(
+            "KS4 time-series source file was not found. Expected "
+            "'data-key-stage-4-performance.csv' or "
+            "'data-key-stage-4-performance__1_.csv'."
+        )
+
+    df1 = pd.read_csv(ks4_path, header=None, low_memory=False)
+
     YEARS = ["2018/19", "2019/20", "2020/21", "2021/22", "2022/23", "2023/24", "2024/25"]
 
-    metrics_row = df1.iloc[2, 5:].values
+    if df1.shape[0] < 5 or df1.shape[1] < 10:
+        raise ValueError(
+            f"KS4 time-series dataset has an unexpected shape: {df1.shape}. "
+            "Check the uploaded CSV export."
+        )
+
+    metrics_row = df1.iloc[2, 5:].astype(str).fillna("").values
 
     att8_start = None
     for j, v in enumerate(metrics_row):
         if "Attainment 8" in str(v):
             att8_start = j + 5
             break
+
     if att8_start is None:
         att8_start = 12
 
     df1_copy = df1.copy()
-    df1_copy.iloc[4:, 0] = df1_copy.iloc[4:, 0].ffill()
-    df1_copy.iloc[4:, 1] = df1_copy.iloc[4:, 1].ffill()
-    df1_copy.iloc[4:, 2] = df1_copy.iloc[4:, 2].ffill()
 
-    inner = {"Camden", "Hackney", "Hammersmith and Fulham", "Haringey", "Islington",
-             "Kensington and Chelsea", "Lambeth", "Lewisham", "Newham", "Southwark",
-             "Tower Hamlets", "Wandsworth", "Westminster"}
+    for col_idx in [0, 1, 2, 4]:
+        if col_idx < df1_copy.shape[1]:
+            df1_copy.iloc[4:, col_idx] = df1_copy.iloc[4:, col_idx].ffill()
+
+    inner = {
+        "Camden", "Hackney", "Hammersmith and Fulham", "Haringey", "Islington",
+        "Kensington and Chelsea", "Lambeth", "Lewisham", "Newham", "Southwark",
+        "Tower Hamlets", "Wandsworth", "Westminster"
+    }
 
     records = []
-    for i in range(4, len(df1)):
-        la = str(df1_copy.iloc[i, 4]) if pd.notna(df1_copy.iloc[i, 4]) else None
-        if la not in inner:
+
+    for i in range(4, len(df1_copy)):
+        la_raw = df1_copy.iloc[i, 4] if 4 < df1_copy.shape[1] else None
+        la = str(la_raw).strip() if pd.notna(la_raw) else None
+
+        if not la or la not in inner:
             continue
-        eg  = str(df1_copy.iloc[i, 0]) if pd.notna(df1_copy.iloc[i, 0]) else "All pupils"
-        sg  = str(df1_copy.iloc[i, 1]) if pd.notna(df1_copy.iloc[i, 1]) else ""
-        sex = str(df1_copy.iloc[i, 2]) if pd.notna(df1_copy.iloc[i, 2]) else ""
+
+        eg_raw = df1_copy.iloc[i, 0] if 0 < df1_copy.shape[1] else "All pupils"
+        sg_raw = df1_copy.iloc[i, 1] if 1 < df1_copy.shape[1] else ""
+        sex_raw = df1_copy.iloc[i, 2] if 2 < df1_copy.shape[1] else ""
+
+        eg = str(eg_raw).strip() if pd.notna(eg_raw) else "All pupils"
+        sg = str(sg_raw).strip() if pd.notna(sg_raw) else ""
+        sex = str(sex_raw).strip() if pd.notna(sex_raw) else ""
+
         for yr_idx, yr in enumerate(YEARS):
             cidx = att8_start + yr_idx
-            if cidx < len(df1.columns):
-                val = pd.to_numeric(str(df1_copy.iloc[i, cidx]).replace(",", ""), errors="coerce")
-                records.append({
-                    "la": la, "ethnic_group": eg, "subgroup": sg, "sex": sex,
-                    "year": yr, "att8": val
-                })
+            if cidx >= df1_copy.shape[1]:
+                continue
+
+            raw_val = str(df1_copy.iloc[i, cidx]).replace(",", "").strip()
+            val = pd.to_numeric(raw_val, errors="coerce")
+
+            records.append({
+                "la": la,
+                "ethnic_group": eg,
+                "subgroup": sg,
+                "sex": sex,
+                "year": yr,
+                "att8": val
+            })
 
     ts = pd.DataFrame(
-    records,
-    columns=["la", "ethnic_group", "subgroup", "sex", "year", "att8"]
-)
+        records,
+        columns=["la", "ethnic_group", "subgroup", "sex", "year", "att8"]
+    )
 
-if ts.empty:
+    if ts.empty:
+        return ts
+
+    ts["la"] = (
+        ts["la"]
+        .astype(str)
+        .str.replace("and Fulham", "& Fulham", regex=False)
+        .str.replace("and Chelsea", "& Chelsea", regex=False)
+    )
+
     return ts
-
-ts["la"] = (
-    ts["la"]
-    .astype(str)
-    .str.replace("and Fulham", "& Fulham", regex=False)
-    .str.replace("and Chelsea", "& Chelsea", regex=False)
-)
-return ts
 
 
 @st.cache_data(show_spinner=False)
