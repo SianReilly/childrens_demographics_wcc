@@ -33,18 +33,30 @@ warnings.filterwarnings("ignore")
 
 # ── DATA PATHS ────────────────────────────────────────────────────────────────
 _FILENAME_ALIASES = {
+    "data-key-stage-4-performance.csv": [
+        "data-key-stage-4-performance.csv",
+    ],
     "data-key-stage-4-performance__1_.csv": [
         "data-key-stage-4-performance__1_.csv",
-        "data-key-stage-4-performance (1).ods",
-        "data-key-stage-4-performance_(1).ods",
+        "data-key-stage-4-performance__1.csv",
+        "data-key-stage-4-performance (1).csv",
+        "data-key-stage-4-performance_(1).csv",
     ],
-    "LSOA_WCC__1_.json": [
-        "LSOA_WCC__1_.json",
+    "LSOA_WCC (1).json": [
         "LSOA_WCC (1).json",
+        "LSOA_WCC-1.json",
+        "LSOA_WCC__1_.json",
         "LSOA_WCC_(1).json",
     ],
-    "2_AHC_Relative_LA.csv": ["2_AHC_Relative_LA.csv"],
-    "4_AHC_Relative_Ward.csv": ["4_AHC_Relative_Ward.csv", "4 AHC Relative Ward.csv"],
+    "Local_Authority_UK.json": [
+        "Local_Authority_UK.json",
+    ],
+    "2_AHC_Relative_LA.csv": [
+        "2_AHC_Relative_LA.csv",
+    ],
+    "4_AHC_Relative_Ward.csv": [
+        "4_AHC_Relative_Ward.csv",
+    ],
 }
 
 _SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
@@ -317,9 +329,21 @@ def load_ks4_time():
                     "year": yr, "att8": val
                 })
 
-    ts = pd.DataFrame(records)
-    ts["la"] = ts["la"].str.replace("and Fulham", "& Fulham").str.replace("and Chelsea", "& Chelsea")
+    ts = pd.DataFrame(
+    records,
+    columns=["la", "ethnic_group", "subgroup", "sex", "year", "att8"]
+)
+
+if ts.empty:
     return ts
+
+ts["la"] = (
+    ts["la"]
+    .astype(str)
+    .str.replace("and Fulham", "& Fulham", regex=False)
+    .str.replace("and Chelsea", "& Chelsea", regex=False)
+)
+return ts
 
 
 @st.cache_data(show_spinner=False)
