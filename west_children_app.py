@@ -19,7 +19,7 @@
 # 8. CIPFA Statistical Neighbours — Trust for London
 #    https://trustforlondon.org.uk/data/information-on-cipfa-nearest-statistical-neighbours/
 
-import os, io, json, warnings
+import os, io, json, warnings, zipfile
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -33,8 +33,8 @@ warnings.filterwarnings("ignore")
 
 # ── DATA PATHS ────────────────────────────────────────────────────────────────
 _FILENAME_ALIASES = {
-    "data-key-stage-4-performance__1_.ods": [
-        "data-key-stage-4-performance__1_.ods",
+    "data-key-stage-4-performance__1_.csv": [
+        "data-key-stage-4-performance__1_.csv",
         "data-key-stage-4-performance (1).ods",
         "data-key-stage-4-performance_(1).ods",
     ],
@@ -53,13 +53,43 @@ _SEARCH_DIRS = [_DATA_SUBDIR, _SCRIPT_DIR, "/mnt/user-data/uploads"]
 
 def _dp(canonical_filename):
     """Resolve a data filename to an absolute path, trying known aliases."""
-    aliases = _FILENAME_ALIASES.get(canonical_filename, []) + [canonical_filename]
+    aliases = list(dict.fromkeys(_FILENAME_ALIASES.get(canonical_filename, []) + [canonical_filename]))
     for directory in _SEARCH_DIRS:
         for alias in aliases:
             candidate = os.path.join(directory, alias)
             if os.path.exists(candidate):
                 return candidate
     return os.path.join("/mnt/user-data/uploads", canonical_filename)
+
+
+def _find_existing(*filenames):
+    """Return the first existing path for any supplied canonical filename or alias."""
+    for name in filenames:
+        path = _dp(name)
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def _looks_like_zip(path):
+    """ODS/XLSX files are ZIP containers; validate before pandas tries to open them."""
+    try:
+        return bool(path) and os.path.exists(path) and zipfile.is_zipfile(path)
+    except Exception:
+        return False
+
+
+def _read_excel_safe(path, *, engine=None, **kwargs):
+    """Read spreadsheet only if it exists and matches the expected container format."""
+    if not path or not os.path.exists(path):
+        raise FileNotFoundError(f"Spreadsheet not found: {path}")
+    ext = os.path.splitext(path)[1].lower()
+    if ext in {'.ods', '.xlsx', '.xlsm'} and not _looks_like_zip(path):
+        raise ValueError(
+            f"Spreadsheet exists but is not a valid {ext} workbook: {os.path.basename(path)}. "
+            "This usually means the uploaded file is HTML/CSV with the wrong extension or the upload is corrupted."
+        )
+    return pd.read_excel(path, engine=engine, **kwargs)
 
 # ── CONSTANTS ─────────────────────────────────────────────────────────────────
 NEIGHBOURS = {
@@ -143,10 +173,7 @@ def load_low_income_la():
         df = pd.read_csv(csv_path, header=8, usecols=[0, 1, 2, 3, 4, 5])
         df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     else:
-        df = pd.read_excel(
-            _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
-            sheet_name="2_AHC_Relative_LA", engine="odf", header=8
-        )
+        df = pd.read_csv(_dp("2_AHC_Relative_LA.csv"), header=8, usecols=[0, 1, 2, 3, 4, 5])
         df.columns = ["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     df = df.dropna(subset=["Area_Code"])
     df["Pct_2024"] = pd.to_numeric(df["Pct_2024"].astype(str).str.replace("%", "", regex=False), errors="coerce")
@@ -167,10 +194,7 @@ def load_low_income_ward():
         df = pd.read_csv(csv_path, header=9, usecols=[0, 1, 2, 3, 4, 5, 6, 7])
         df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     else:
-        df = pd.read_excel(
-            _dp("children-in-low-income-families-local-area-statistics-2022-2025.ods"),
-            sheet_name="4_AHC_Relative_Ward", engine="odf", header=9
-        )
+        df = pd.read_csv(_dp("4_AHC_Relative_Ward.csv"), header=9, usecols=[0, 1, 2, 3, 4, 5, 6, 7])
         df.columns = ["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"]
     df = df.dropna(subset=["Ward_Code"])
     df["Pct_2024"] = pd.to_numeric(df["Pct_2024"].astype(str).str.replace("%", "", regex=False), errors="coerce")
@@ -186,7 +210,28 @@ def load_low_income_ward():
 @st.cache_data(show_spinner=False)
 def load_ks4_ethnic():
     """KS4 2024/25 Attainment 8 by ethnic group — Inner London boroughs."""
-    df2 = pd.read_excel(_dp("data-key-stage-4-performance__1_.ods"), engine="odf", header=None)
+    ks4_path = _find_existing(
+        "data-key-stage-4-performance__1_.csv",
+        "data-key-stage-4-performance.csv",
+    )
+    if not ks4_path:
+        raise FileNotFoundError(
+            "KS4 ethnicity source file was not found. Expected 'data-key-stage-4-performance__1_.csv' "
+            "or 'data-key-stage-4-performance.csv'."
+        )
+
+    try:
+        df2 = pd.read_csv(ks4_path, header=None, low_memory=False)
+    except Exception as e:
+        raise RuntimeError(
+            f"Unable to open KS4 ethnicity dataset '{os.path.basename(ks4_path)}'. {e}"
+        ) from e
+
+    if df2.shape[0] < 6 or df2.shape[1] < 5:
+        raise ValueError(
+            f"KS4 ethnicity dataset has an unexpected layout: {df2.shape}. Check the uploaded source file."
+        )
+
     years_row   = df2.iloc[2, 4:].ffill()
     metrics_row = df2.iloc[3, 4:].ffill()
     sub_row     = df2.iloc[4, 4:]
@@ -194,40 +239,46 @@ def load_ks4_ethnic():
     cols = ["ethnic_group", "subgroup", "region", "la"]
     for j in range(len(years_row)):
         yr = str(years_row.iloc[j]).strip().replace("/", "_")
-        m  = str(metrics_row.iloc[j]).strip().replace(" ", "_")[:22]
-        s  = str(sub_row.iloc[j]).strip().replace(" ", "_")[:18]
+        m = str(metrics_row.iloc[j]).strip().replace(" ", "_")[:22]
+        s = str(sub_row.iloc[j]).strip().replace(" ", "_")[:18]
         cols.append(f"{yr}_{m}_{s}")
 
     data = df2.iloc[5:].copy()
     data.columns = cols[:len(data.columns)]
     data["ethnic_group"] = data["ethnic_group"].ffill()
-    data["subgroup"]     = data["subgroup"].ffill()
-    data["region"]       = data["region"].ffill()
+    data["subgroup"] = data["subgroup"].ffill()
+    data["region"] = data["region"].ffill()
 
-    inner = ["Camden", "Hackney", "Hammersmith and Fulham", "Haringey", "Islington",
-             "Kensington and Chelsea", "Lambeth", "Lewisham", "Newham", "Southwark",
-             "Tower Hamlets", "Wandsworth", "Westminster"]
+    inner = [
+        "Camden", "Hackney", "Hammersmith and Fulham", "Haringey", "Islington",
+        "Kensington and Chelsea", "Lambeth", "Lewisham", "Newham", "Southwark",
+        "Tower Hamlets", "Wandsworth", "Westminster"
+    ]
 
     mask = data["la"].isin(inner) & data["subgroup"].astype(str).str.startswith("All")
-    sub  = data[mask].copy()
+    sub = data.loc[mask].copy()
 
     att_col = [c for c in sub.columns if "2024_25" in c and "Attainment_8" in c and "Total" in c]
-    if att_col:
-        sub["att8_2425"] = pd.to_numeric(sub[att_col[0]], errors="coerce")
-
     pct_col = [c for c in sub.columns if "2024_25" in c and "achieving_gr" in c and "Total" in c]
+
+    sub["att8_2425"] = pd.to_numeric(sub[att_col[0]], errors="coerce") if att_col else np.nan
     if pct_col:
         raw = sub[pct_col[0]].astype(str).str.replace("%", "", regex=False)
         sub["pct_5above_EM_2425"] = pd.to_numeric(raw, errors="coerce")
+    else:
+        sub["pct_5above_EM_2425"] = np.nan
 
-    sub["la"] = sub["la"].str.replace("and Fulham", "& Fulham").str.replace("and Chelsea", "& Chelsea")
+    sub["la"] = (
+        sub["la"].astype(str)
+        .str.replace("and Fulham", "& Fulham", regex=False)
+        .str.replace("and Chelsea", "& Chelsea", regex=False)
+    )
     return sub
-
 
 @st.cache_data(show_spinner=False)
 def load_ks4_time():
     """KS4 time series (all pupils) — Inner London boroughs."""
-    df1 = pd.read_excel(_dp("data-key-stage-4-performance.ods"), engine="odf", header=None)
+    df1 = pd.read_csv(_dp("data-key-stage-4-performance.csv"), header=None, low_memory=False)
     YEARS = ["2018/19", "2019/20", "2020/21", "2021/22", "2022/23", "2023/24", "2024/25"]
 
     metrics_row = df1.iloc[2, 5:].values
@@ -419,7 +470,6 @@ def apply_ons_style(fig, source=""):
             showarrow=False, font=dict(size=10, color="#777"), align="left"
         )
     return fig
-
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -646,6 +696,7 @@ with tab2:
                                     df_map["Age_0_4"] / df_map["Total_dep_children"] * 100, 0)
     df_map["pct_10_15"] = np.where(df_map["Total_dep_children"] > 0,
                                     df_map["Age_10_15"] / df_map["Total_dep_children"] * 100, 0)
+
     df_map["pct_white"] = np.where(df_map["Total"] > 0, df_map["White"] / df_map["Total"] * 100, 0)
     df_map["pct_asian"] = np.where(df_map["Total"] > 0, df_map["Asian"] / df_map["Total"] * 100, 0)
     df_map["pct_black"] = np.where(df_map["Total"] > 0, df_map["Black"] / df_map["Total"] * 100, 0)
