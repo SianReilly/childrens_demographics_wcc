@@ -571,25 +571,30 @@ with tab1:
     col_a, col_b = st.columns([3,2])
     with col_a:
         fig1 = px.bar(df_nb, x="Pct_2025", y="Borough", orientation="h",
-                      color="Borough",
-                      color_discrete_map={r["Borough"]: BOROUGH_COLOURS.get(r["Borough"], WCC["blue"])
-                                          for _, r in df_nb.iterrows()},
-                      text="Pct_2025")
+              color="Borough",
+              color_discrete_map={r["Borough"]: BOROUGH_COLOURS.get(r["Borough"], WCC["blue"])
+                                  for _, r in df_nb.iterrows()},
+              text="Pct_2025")
         fig1.update_traces(texttemplate="%{text:.1f}%", textposition="outside", showlegend=False)
+
         # Highlight Westminster bar with yellow outline
-        wcc_idx = df_nb["Borough"].tolist().index("Westminster") if "Westminster" in df_nb["Borough"].tolist() else -1
-        if wcc_idx >= 0:
+        boroughs = df_nb["Borough"].tolist()
+        if "Westminster" in boroughs:
+            wcc_idx = boroughs.index("Westminster")
+            wcc_pct = df_nb.loc[df_nb["Borough"] == "Westminster", "Pct_2025"].values[0]
             fig1.add_shape(type="rect",
-                y0=wcc_idx-0.4, y1=wcc_idx+0.4,
-                x0=0, x1=df_nb["Pct_2025"].iloc[wcc_idx],
+                y0=wcc_idx - 0.4, y1=wcc_idx + 0.4,
+                x0=0, x1=wcc_pct,
                 line=dict(color=WCC["yellow"], width=3), fillcolor="rgba(0,0,0,0)",
                 yref="y", xref="x")
+
         fig1.update_xaxes(range=[0, df_nb["Pct_2025"].max()*1.22], title="% children in low income (AHC)")
         fig1.update_yaxes(title="")
         apply_wcc_style(fig1, "DWP Children in Low Income Families FYE 2025")
         st.caption("Islington highest; Kensington & Chelsea lowest — Westminster highlighted")
         st.plotly_chart(fig1, use_container_width=True)
         img_btn(fig1, "child_poverty_bar")
+
 
     with col_b:
         df_ts2 = df_nb[["Borough","Pct_2024","Pct_2025"]].melt("Borough", var_name="Year", value_name="Pct")
