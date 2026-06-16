@@ -19,8 +19,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import topojson as tp
-from pptx import Presentation
-from pptx.util import Inches, Pt
 
 warnings.filterwarnings("ignore")
 
@@ -229,42 +227,48 @@ def load_ks4_ethnic():
 
 @st.cache_data(show_spinner=False)
 def load_ks4_time():
-    """KS4 time series (all pupils) — Inner London LAs. Returns empty DF if file missing."""
-    path = _dp("data-key-stage-4-performance.csv")
+    """KS4 time series (all pupils) — Inner London LAs. Returns empty DF if file missing.
+    File: data-key-stage-4-performance__1_.csv
+    Structure: col0=ethnic_group, col1=subgroup, col2=sex, col3=region, col4=la
+    Row2=metric (ffill), Row3=year, data from row5.
+    All-pupils rows: col0=NaN, col1=NaN, col2=NaN
+    Att8 columns: 12-18 (years 2018/19–2024/25)
+    """
+    path = _dp("data-key-stage-4-performance__1_.csv")
     if not os.path.exists(path):
-        return pd.DataFrame(columns=["la","ethnic_group","subgroup","sex","year","att8"])
+        return pd.DataFrame(columns=["la","year","att8"])
 
     df = pd.read_csv(path, header=None, low_memory=False)
-    YEARS = ["2018/19","2019/20","2020/21","2021/22","2022/23","2023/24","2024/25"]
 
-    metrics_row = df.iloc[2, 5:].astype(str).fillna("").values
-    att8_start  = next((j+5 for j,v in enumerate(metrics_row) if "Attainment 8" in str(v)), 12)
+    YEARS    = ["2018/19","2019/20","2020/21","2021/22","2022/23","2023/24","2024/25"]
+    ATT8_COLS = [12,13,14,15,16,17,18]  # Att8 Total by year
 
+    # Forward-fill ethnic group, subgroup, sex columns
     df_c = df.copy()
-    for ci in [0,1,2,4]:
-        if ci < df_c.shape[1]:
-            df_c.iloc[4:, ci] = df_c.iloc[4:, ci].ffill()
+    for ci in [0,1,2,3]:
+        df_c.iloc[5:, ci] = df_c.iloc[5:, ci].ffill()
 
     inner = {"Camden","Hackney","Hammersmith and Fulham","Haringey","Islington",
              "Kensington and Chelsea","Lambeth","Lewisham","Newham","Southwark",
              "Tower Hamlets","Wandsworth","Westminster"}
 
-    records = []
-    for i in range(4, len(df_c)):
-        la = str(df_c.iloc[i, 4]).strip() if 4 < df_c.shape[1] else None
-        if not la or la not in inner:
-            continue
-        eg  = str(df_c.iloc[i, 0]).strip() if pd.notna(df_c.iloc[i, 0]) else "All pupils"
-        sg  = str(df_c.iloc[i, 1]).strip() if pd.notna(df_c.iloc[i, 1]) else ""
-        sex = str(df_c.iloc[i, 2]).strip() if pd.notna(df_c.iloc[i, 2]) else ""
-        for yr_idx, yr in enumerate(YEARS):
-            cidx = att8_start + yr_idx
-            if cidx < df_c.shape[1]:
-                val = pd.to_numeric(str(df_c.iloc[i,cidx]).replace(",","").strip(), errors="coerce")
-                records.append({"la":la,"ethnic_group":eg,"subgroup":sg,"sex":sex,"year":yr,"att8":val})
+    sub = df_c.iloc[5:].copy()
+    # All-pupils = no ethnic group, no subgroup, no sex filter (all NaN after ffill from NaN top)
+    # Actually after ffill, these are still NaN where there were never values
+    mask = (sub.iloc[:,4].isin(inner) &
+            sub.iloc[:,0].isna() &
+            sub.iloc[:,1].isna() &
+            sub.iloc[:,2].isna())
+    all_pupils = sub[mask]
 
-    ts = pd.DataFrame(records) if records else pd.DataFrame(
-        columns=["la","ethnic_group","subgroup","sex","year","att8"])
+    records = []
+    for _, row in all_pupils.iterrows():
+        la = str(row.iloc[4]).strip()
+        for yr, cidx in zip(YEARS, ATT8_COLS):
+            val = pd.to_numeric(str(row.iloc[cidx]).replace(",","").strip(), errors="coerce")
+            records.append({"la":la,"year":yr,"att8":val})
+
+    ts = pd.DataFrame(records) if records else pd.DataFrame(columns=["la","year","att8"])
     if not ts.empty:
         ts["la"] = (ts["la"].str.replace("and Fulham","& Fulham",regex=False)
                              .str.replace("and Chelsea","& Chelsea",regex=False))
@@ -330,38 +334,23 @@ def load_borough_geojson():
     return json.loads(tp.Topology(topo, object_name="Borough_London_LL84").to_geojson())
 
 # ── PPTX HELPERS ──────────────────────────────────────────────────────────────
-def _fig_to_png(fig):
-    """Export Plotly figure to PNG bytes. Falls back gracefully if kaleido absent."""
+def img_btn(fig, key):
+    """Download chart as interactive HTML (works without kaleido)."""
     try:
-        return fig.to_image(format="png", width=1200, height=680, scale=2)
-    except Exception:
-        # kaleido/Chrome not available — return a minimal valid PNG
-        import base64
-        return base64.b64decode(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
-
-def _fig_to_pptx(fig, title=""):
-    img = _fig_to_png(fig)
-    prs = Presentation()
-    prs.slide_width, prs.slide_height = Inches(13.33), Inches(7.5)
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    slide.shapes.add_picture(io.BytesIO(img), Inches(0.3), Inches(0.3), Inches(12.73), Inches(6.4))
-    txb = slide.shapes.add_textbox(Inches(0.3), Inches(6.8), Inches(12), Inches(0.55))
-    tf = txb.text_frame
-    tf.text = title or (fig.layout.title.text or "Chart")
-    tf.paragraphs[0].runs[0].font.size = Pt(13)
-    tf.paragraphs[0].runs[0].font.bold = True
-    buf = io.BytesIO(); prs.save(buf); buf.seek(0)
-    return buf
-
-def pptx_btn(fig, key, title=""):
-    try:
-        buf = _fig_to_pptx(fig, title)
-        st.download_button("⬇ Download slide (PPTX)", buf, f"{key}.pptx",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            key=f"dl_{key}")
+        html_bytes = fig.to_html(include_plotlyjs="cdn", full_html=True).encode("utf-8")
+        st.download_button(
+            "⬇ Download chart (HTML)",
+            data=html_bytes,
+            file_name=f"{key}.html",
+            mime="text/html",
+            key=f"dl_{key}",
+        )
     except Exception as e:
-        st.caption(f"_Slide export unavailable ({e})_")
+        st.caption(f"_Download unavailable: {e}_")
+
+# Keep pptx_btn as alias for backward compat in any remaining calls
+def pptx_btn(fig, key, title=""):
+    img_btn(fig, key)
 
 def apply_wcc_style(fig, source=""):
     """Apply Westminster City Council brand styling to a Plotly figure."""
@@ -520,7 +509,7 @@ with tab1:
         fig1.update_yaxes(title="")
         apply_wcc_style(fig1, "DWP Children in Low Income Families FYE 2025")
         st.plotly_chart(fig1, use_container_width=True)
-        pptx_btn(fig1, "child_poverty_bar", "Child poverty rate — CIPFA neighbours FYE 2025")
+        img_btn(fig1, "child_poverty_bar")
 
     with col_b:
         df_ts = df_nb[["Borough","Pct_2024","Pct_2025"]].melt("Borough",var_name="Year",value_name="Pct")
@@ -533,7 +522,7 @@ with tab1:
         fig2.update_xaxes(title="")
         apply_wcc_style(fig2, "DWP Children in Low Income Families FYE 2025")
         st.plotly_chart(fig2, use_container_width=True)
-        pptx_btn(fig2, "child_poverty_trend", "Child poverty trend 2024–2025")
+        img_btn(fig2, "child_poverty_trend")
 
     # CIPFA neighbours choropleth map
     st.divider()
@@ -566,7 +555,7 @@ with tab1:
         paper_bgcolor="white",
     )
     st.plotly_chart(fig_nb_map, use_container_width=True)
-    pptx_btn(fig_nb_map, "cipfa_map", "CIPFA neighbours child poverty map FYE 2025")
+    img_btn(fig_nb_map, "cipfa_map")
 
     st.divider()
     st.subheader("Westminster ward-level child poverty (FYE 2025)")
@@ -581,7 +570,7 @@ with tab1:
     fig3.update_yaxes(title="")
     apply_wcc_style(fig3, "DWP Children in Low Income Families FYE 2025 — ward level")
     st.plotly_chart(fig3, use_container_width=True)
-    pptx_btn(fig3, "ward_poverty", "Westminster ward child poverty FYE 2025")
+    img_btn(fig3, "ward_poverty")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — LSOA MAPS
@@ -656,7 +645,7 @@ with tab2:
         paper_bgcolor="white",
     )
     st.plotly_chart(fig_map, use_container_width=True)
-    pptx_btn(fig_map, f"lsoa_{col_name}", f"{label} — Westminster LSOAs (Census 2021)")
+    img_btn(fig_map, f"lsoa_{col_name}")
 
     st.markdown('<div class="source-box">Census 2021, ONS Nomis. RM006: household type by age of youngest child. RM033: ethnic group of dependent child by sex. ONS 2021 LSOA boundaries.</div>', unsafe_allow_html=True)
 
@@ -670,7 +659,7 @@ with tab2:
     fig_lsoa.update_yaxes(title="")
     apply_wcc_style(fig_lsoa, "Census 2021, ONS Nomis RM006")
     st.plotly_chart(fig_lsoa, use_container_width=True)
-    pptx_btn(fig_lsoa, "lsoa_top15", "Top 15 Westminster LSOAs by dependent children")
+    img_btn(fig_lsoa, "lsoa_top15")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — KS4 ATTAINMENT
@@ -699,7 +688,7 @@ with tab3:
             fig_ae.update_yaxes(title="")
             apply_wcc_style(fig_ae, "DfE KS4 2024/25, state-funded schools")
             st.plotly_chart(fig_ae, use_container_width=True)
-            pptx_btn(fig_ae, "wcc_att8_ethnic", "Westminster Attainment 8 by ethnic group 2024/25")
+            img_btn(fig_ae, "wcc_att8_ethnic")
 
     with col_kb:
         all_eth = ks4_nb[["la","ethnic_group","att8_2425"]].dropna(subset=["att8_2425"]).copy()
@@ -718,33 +707,26 @@ with tab3:
             fig_ac.update_layout(height=480)
             apply_wcc_style(fig_ac, "DfE KS4 2024/25")
             st.plotly_chart(fig_ac, use_container_width=True)
-            pptx_btn(fig_ac, "att8_boroughs", "Attainment 8 by borough and ethnic group")
+            img_btn(fig_ac, "att8_boroughs")
 
     # Time series — only show if data loaded
     st.divider()
     st.subheader("Attainment 8 trend 2018/19–2024/25")
     if df_ks4_ts.empty or "la" not in df_ks4_ts.columns:
-        st.info("Time series data not available — upload `data-key-stage-4-performance.csv` to the `data/` folder in GitHub.")
+        st.info("Time series data not available — upload `data-key-stage-4-performance__1_.csv` to the `data/` folder in GitHub.")
     else:
-        nb_v1 = ["Camden","Hammersmith and Fulham","Islington","Kensington and Chelsea","Wandsworth","Westminster"]
-        ts_d = df_ks4_ts[
-            df_ks4_ts["la"].isin(nb_v1) &
-            df_ks4_ts["subgroup"].str.startswith("All", na=False) &
-            df_ks4_ts["att8"].notna()
-        ].copy()
-        ts_d["la"] = (ts_d["la"].str.replace("and Fulham","& Fulham",regex=False)
-                                 .str.replace("and Chelsea","& Chelsea",regex=False))
-        ts_agg = ts_d.groupby(["la","year"])["att8"].mean().reset_index()
-        if not ts_agg.empty:
-            fig_ts = px.line(ts_agg, x="year", y="att8", color="la", markers=True,
-                             title="Attainment 8 dipped 2021/22 then recovered",
-                             color_discrete_map={la:BOROUGH_COLOURS.get(la,WCC["blue"]) for la in ts_agg["la"].unique()})
+        nb_v1 = ["Camden","Hammersmith & Fulham","Islington","Kensington & Chelsea","Wandsworth","Westminster"]
+        ts_d = df_ks4_ts[df_ks4_ts["la"].isin(nb_v1) & df_ks4_ts["att8"].notna()].copy()
+        if not ts_d.empty:
+            fig_ts = px.line(ts_d, x="year", y="att8", color="la", markers=True,
+                             title="Attainment 8 trend — dip in 2021/22 (COVID), recovering since",
+                             color_discrete_map={la:BOROUGH_COLOURS.get(la,WCC["blue"]) for la in ts_d["la"].unique()})
             fig_ts.update_traces(line_width=2.5)
             fig_ts.update_xaxes(title="Academic year")
-            fig_ts.update_yaxes(title="Avg Attainment 8 score")
-            apply_wcc_style(fig_ts, "DfE KS4 Performance, Explore Education Statistics")
+            fig_ts.update_yaxes(title="Avg Attainment 8 score", rangemode="tozero")
+            apply_wcc_style(fig_ts, "DfE KS4 Performance, state-funded schools, Explore Education Statistics")
             st.plotly_chart(fig_ts, use_container_width=True)
-            pptx_btn(fig_ts, "att8_trend", "Attainment 8 trend 2018/19–2024/25")
+            img_btn(fig_ts, "att8_trend")
 
     st.markdown('<div class="source-box">DfE Key Stage 4 attainment by ethnicity, state-funded schools, Inner London. 2018/19–2024/25. Note: 2020/21 and 2021/22 figures should be interpreted with caution due to COVID-19 assessment disruption. Small ethnic group numbers lead to suppressed cells.</div>', unsafe_allow_html=True)
 
@@ -773,7 +755,7 @@ with tab4:
         fig_eb.update_yaxes(title="")
         apply_wcc_style(fig_eb, "Census 2021, ONS Nomis RM033")
         st.plotly_chart(fig_eb, use_container_width=True)
-        pptx_btn(fig_eb, "wcc_ethnic", "Westminster children by ethnic group (Census 2021)")
+        img_btn(fig_eb, "wcc_ethnic")
 
     with col_e2:
         age_totals = {"0–4":df_rm006["Age_0_4"].sum(),"5–9":df_rm006["Age_5_9"].sum(),
@@ -790,7 +772,7 @@ with tab4:
         fig_age.update_xaxes(title="Age group")
         apply_wcc_style(fig_age, "Census 2021, ONS Nomis RM006")
         st.plotly_chart(fig_age, use_container_width=True)
-        pptx_btn(fig_age, "wcc_age", "Age structure of Westminster's children (Census 2021)")
+        img_btn(fig_age, "wcc_age")
 
     st.divider()
     st.subheader("Ethnic diversity vs number of children by LSOA")
@@ -816,7 +798,7 @@ with tab4:
                                     name="Trend", showlegend=False))
     apply_wcc_style(fig_sc, "Census 2021, ONS Nomis RM033 — diversity = 1 − Σ(share²)")
     st.plotly_chart(fig_sc, use_container_width=True)
-    pptx_btn(fig_sc, "diversity_scatter", "Ethnic diversity vs children by Westminster LSOA")
+    img_btn(fig_sc, "diversity_scatter")
 
     st.markdown('<div class="source-box">Census 2021, ONS Nomis. RM006: Age of youngest dependent child by household type. RM033: Ethnic group of dependent child by sex. Both at 2021 LSOA level.</div>', unsafe_allow_html=True)
 
@@ -844,17 +826,32 @@ with tab5:
 
     col_g1, col_g2 = st.columns([3,2])
     with col_g1:
+        st.caption("Westminster: 22% of LSOAs fall in the most deprived national decile")
         fig_dec = px.line(df_dec.sort_values("Decile_n"),
                           x="Decile_n", y="Pct", color="LA_Name", markers=True,
                           color_discrete_map={la:BOROUGH_COLOURS.get(la,WCC["blue"]) for la in df_dec["LA_Name"].unique()},
-                          title="Westminster: 22% of LSOAs in most deprived national decile",
-                          labels={"Decile_n":"Income deprivation decile (1=most deprived)","Pct":"% of LSOAs"})
+                          labels={"Decile_n":"Income deprivation decile (1 = most deprived)",
+                                  "Pct":"% of borough LSOAs", "LA_Name":""})
         fig_dec.update_traces(line_width=2.5)
-        fig_dec.update_xaxes(tickvals=list(range(1,11)), title="Income deprivation decile")
-        fig_dec.update_yaxes(rangemode="tozero", title="% of borough LSOAs in decile")
-        apply_wcc_style(fig_dec, "EGDI (Lloyd et al. 2023) — gedi.ac.uk/egdi. Based on IMD 2019.")
+        fig_dec.update_xaxes(tickvals=list(range(1,11)))
+        fig_dec.update_yaxes(rangemode="tozero")
+        fig_dec.update_layout(
+            title=None,
+            legend=dict(orientation="h", yanchor="bottom", y=1.01, x=0,
+                        font=dict(size=10, family="Arial"), title=None),
+            margin=dict(l=50, r=20, t=10, b=80),
+            height=380,
+            font_family="Arial", font_color=WCC["blue"],
+            plot_bgcolor="white", paper_bgcolor="white",
+        )
+        fig_dec.update_xaxes(showgrid=False, linecolor="#ccc", showline=True, tickfont=dict(size=11))
+        fig_dec.update_yaxes(gridcolor=WCC["grid"], zeroline=False, tickfont=dict(size=11))
+        fig_dec.add_annotation(
+            text="<i>Source: EGDI (Lloyd et al. 2023) — gedi.ac.uk/egdi. Based on IMD 2019.</i>",
+            xref="paper", yref="paper", x=0, y=-0.28,
+            showarrow=False, font=dict(size=9, color="#666", family="Arial"), align="left")
         st.plotly_chart(fig_dec, use_container_width=True)
-        pptx_btn(fig_dec, "egdi_decile", "EGDI deprivation decile distribution")
+        img_btn(fig_dec, "egdi_decile")
 
     with col_g2:
         st.markdown("**EGDI Classification**")
@@ -890,6 +887,6 @@ with tab5:
         font_family="Arial", paper_bgcolor="white", height=440,
         legend=dict(orientation="h", y=-0.1))
     st.plotly_chart(fig_r, use_container_width=True)
-    pptx_btn(fig_r, "egdi_radar", "EGDI radar chart — deprivation decile distribution")
+    img_btn(fig_r, "egdi_radar")
 
     st.markdown('<div class="source-box">EGDI (Ethnic Group Deprivation Index), Lloyd et al. (2023). GEDI. <a href="https://gedi.ac.uk/egdi/">gedi.ac.uk/egdi</a>. Based on IMD 2019 income deprivation domain. "More ethnic inequality" means deprivation is significantly unequally distributed across ethnic groups within the borough — not that it is more deprived overall.</div>', unsafe_allow_html=True)
