@@ -577,21 +577,10 @@ with tab1:
               text="Pct_2025")
         fig1.update_traces(texttemplate="%{text:.1f}%", textposition="outside", showlegend=False)
 
-        # Highlight Westminster bar with yellow outline
-        boroughs = df_nb["Borough"].tolist()
-        if "Westminster" in boroughs:
-            wcc_idx = boroughs.index("Westminster")
-            wcc_pct = df_nb.loc[df_nb["Borough"] == "Westminster", "Pct_2025"].values[0]
-            fig1.add_shape(type="rect",
-                y0=wcc_idx - 0.4, y1=wcc_idx + 0.4,
-                x0=0, x1=wcc_pct,
-                line=dict(color=WCC["yellow"], width=3), fillcolor="rgba(0,0,0,0)",
-                yref="y", xref="x")
-
         fig1.update_xaxes(range=[0, df_nb["Pct_2025"].max()*1.22], title="% children in low income (AHC)")
         fig1.update_yaxes(title="")
         apply_wcc_style(fig1, "DWP Children in Low Income Families FYE 2025")
-        st.caption("Islington highest; Kensington & Chelsea lowest — Westminster highlighted")
+        st.caption("Islington highest; Kensington & Chelsea lowest")
         st.plotly_chart(fig1, use_container_width=True)
         img_btn(fig1, "child_poverty_bar")
 
