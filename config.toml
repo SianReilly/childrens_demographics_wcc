@@ -1,8 +1,8 @@
 [theme]
-primaryColor = "#00857D"        # WCC primary teal
+primaryColor = "#F5CB00"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F5F4F0"
-textColor = "#1B2040"
+secondaryBackgroundColor = "#E8EBF5"
+textColor = "#0B2265"
 font = "sans serif"
 
 [server]
