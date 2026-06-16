@@ -436,41 +436,53 @@ rm_tot      = df_rm033["Total"].sum()
 pct_nonwhite = round((1 - df_rm033["White"].sum()/rm_tot)*100, 1) if rm_tot else 0
 
 c1,c2,c3,c4,c5 = st.columns(5)
-c1.metric(
+c1, c2, c3, c4, c5 = st.columns(5)
+
+def _card(col, title, value, sub, help_txt):
+    """Metric card without a delta arrow — just title, value, subtitle."""
+    col.metric(title, value, help=help_txt)
+    col.markdown(f"<div style='font-size:.78em;color:#666;margin-top:-14px'>{sub}</div>",
+                 unsafe_allow_html=True)
+
+n_change  = int(wcc_li['N_2025'] - wcc_li['N_2024'])
+pp_change = wcc_li['Pct_2025']   - wcc_li['Pct_2024']
+diff_lon  = wcc_li['Pct_2025']   - london_avg
+
+_card(c1,
     "Children in low income (FYE 2025)",
     f"{int(wcc_li['N_2025']):,}",
-    delta=f"↕ {wcc_li['Pct_2025']:.1f}% of all children in Westminster",
-    delta_color="off",
-    help="Number of children aged 0–15 in families in relative low income after housing costs (AHC), FYE 2025. Source: DWP."
-)
+    f"{wcc_li['Pct_2025']:.1f}% of all Westminster children",
+    "AHC relative poverty, children aged 0–15. FYE = financial year ending. Source: DWP/HMRC. No arrow — this is a count, not a comparison.")
+
 c2.metric(
     "Change vs FYE 2024",
-    f"{int(wcc_li['N_2025']-wcc_li['N_2024']):+,} children",
-    delta=f"{wcc_li['Pct_2025']-wcc_li['Pct_2024']:+.1f} percentage points",
+    f"{n_change:+,} children",
+    delta=f"{pp_change:+.1f}pp year-on-year",
     delta_color="inverse",
-    help="Change in the number and rate of children in low income families between FYE 2024 and FYE 2025. A negative change (shown in green) means fewer children in poverty."
-)
+    help="Year-on-year change in children in low income families (FYE 2024 → FYE 2025). "
+         "Green ↓ = improvement (fewer children in poverty). Red ↑ = deterioration.")
+
 c3.metric(
-    "Westminster vs London average",
+    "vs London borough average",
     f"{wcc_li['Pct_2025']:.1f}% (Westminster)",
-    delta=f"{wcc_li['Pct_2025']-london_avg:+.1f}pp vs London borough average ({london_avg:.1f}%)",
+    delta=f"{diff_lon:+.1f}pp vs avg of 33 boroughs ({london_avg:.1f}%)",
     delta_color="inverse",
-    help="Westminster's child poverty rate (AHC relative) compared to the unweighted average across all 33 London boroughs. A negative value means Westminster is below the London average."
-)
-c4.metric(
+    help=f"Westminster's AHC child poverty rate vs the unweighted average of all 33 London boroughs ({london_avg:.1f}%). "
+         f"Green ↓ = Westminster is below the London average. Red ↑ = above average.")
+
+_card(c4,
     "Dependent children (Census 2021)",
     f"{total_dep:,}",
-    delta=f"{pct_u5}% aged 0–4 (youngest age group)",
-    delta_color="off",
-    help="Total dependent children across 123 Westminster LSOAs. Census 2021, ONS Nomis RM006."
-)
-c5.metric(
+    f"{pct_u5}% aged 0–4 · Census 2021 snapshot",
+    "Total dependent children across Westminster's 123 LSOAs (2021 boundaries). "
+    "Source: Census 2021, ONS Nomis RM006. No arrow — Census is a point-in-time snapshot, no year-on-year comparison.")
+
+_card(c5,
     "Non-white children (Census 2021)",
     f"{pct_nonwhite}%",
-    delta="of dependent children across Westminster LSOAs",
-    delta_color="off",
-    help="Percentage of dependent children who are not classified as White, based on the ethnic group of the dependent child. Census 2021, ONS Nomis RM033."
-)
+    "of dependent children in Westminster",
+    "% of dependent children not classified as White (any background), based on ethnic group of the child. "
+    "Source: Census 2021, ONS Nomis RM033. No arrow — no year-on-year comparison available from Census.")
 st.divider()
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
@@ -761,8 +773,16 @@ with tab4:
     fig_sc = px.scatter(df_sc, x="Total", y="diversity_idx", hover_name="LSOA_NAME",
                         size="Total", color="diversity_idx", color_continuous_scale="Blues",
                         title="Larger LSOAs tend to have higher ethnic diversity",
-                        labels={"Total":"Total dependent children","diversity_idx":"Diversity index"},
-                        trendline="ols")
+                        labels={"Total":"Total dependent children","diversity_idx":"Diversity index"})
+    # Manual numpy trendline (avoids statsmodels dependency)
+    _x = df_sc["Total"].values; _y = df_sc["diversity_idx"].values
+    _mask = np.isfinite(_x) & np.isfinite(_y)
+    if _mask.sum() > 2:
+        _m, _b = np.polyfit(_x[_mask], _y[_mask], 1)
+        _xr = np.linspace(_x[_mask].min(), _x[_mask].max(), 100)
+        fig_sc.add_trace(go.Scatter(x=_xr, y=_m*_xr+_b, mode="lines",
+                                    line=dict(color=WCC["amaranth"], width=2, dash="dash"),
+                                    name="Trend", showlegend=False))
     apply_wcc_style(fig_sc, "Census 2021, ONS Nomis RM033 — diversity = 1 − Σ(share²)")
     st.plotly_chart(fig_sc, use_container_width=True)
     pptx_btn(fig_sc, "diversity_scatter", "Ethnic diversity vs children by Westminster LSOA")
