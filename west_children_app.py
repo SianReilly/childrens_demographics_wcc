@@ -538,21 +538,33 @@ with tab1:
     # CIPFA neighbours choropleth map
     st.divider()
     st.subheader("Geographic context — CIPFA statistical neighbours")
-    nb_gj = {"type":"FeatureCollection",
-              "features":[f for f in borough_geojson["features"]
-                          if f["properties"]["BoroughCod"] in nb_codes]}
-    fig_nb_map = px.choropleth_map(
-        df_nb, geojson=nb_gj, locations="Area_Code",
-        featureidkey="properties.BoroughCod",
-        color="Pct_2025", hover_name="Borough",
-        hover_data={"Pct_2025":":.1f%","Area_Code":False},
-        color_continuous_scale=[[0,"#E8EBF5"],[0.5,"#0C35FA"],[1.0,"#0B2265"]],
-        range_color=[df_nb["Pct_2025"].min()*0.9, df_nb["Pct_2025"].max()*1.05],
-        zoom=10.5, center={"lat":51.505,"lon":-0.17}, opacity=0.75,
-        map_style="carto-positron",
+    # Inject 'id' into borough features — required for go.Choroplethmap location matching
+    nb_gj = {"type":"FeatureCollection","features":[]}
+    for _f in borough_geojson["features"]:
+        if _f["properties"]["BoroughCod"] in nb_codes:
+            _fc = {k:v for k,v in _f.items()}
+            _fc["id"] = _f["properties"]["BoroughCod"]
+            nb_gj["features"].append(_fc)
+
+    fig_nb_map = go.Figure(go.Choroplethmap(
+        geojson=nb_gj,
+        locations=df_nb["Area_Code"].tolist(),
+        z=df_nb["Pct_2025"].tolist(),
+        text=df_nb["Borough"].tolist(),
+        hovertemplate="<b>%{text}</b><br>%{z:.1f}% in low income<extra></extra>",
+        colorscale=[[0,"#E8EBF5"],[0.5,"#0C35FA"],[1.0,"#0B2265"]],
+        zmin=df_nb["Pct_2025"].min()*0.9, zmax=df_nb["Pct_2025"].max()*1.05,
+        marker_opacity=0.75, marker_line_width=1,
+        colorbar_title="% in<br>low income",
+    ))
+    fig_nb_map.update_layout(
+        map_style="carto-positron", map_zoom=10.5,
+        map_center={"lat":51.505,"lon":-0.17},
+        height=460, margin=dict(l=0,r=0,t=50,b=0),
         title="% children in low income — CIPFA neighbours (FYE 2025)",
-        labels={"Pct_2025":"% in low income"})
-    fig_nb_map.update_layout(height=460, margin=dict(l=0,r=0,t=50,b=0))
+        title_font_size=13, font_family="Arial", font_color="#0B2265",
+        paper_bgcolor="white",
+    )
     st.plotly_chart(fig_nb_map, use_container_width=True)
     pptx_btn(fig_nb_map, "cipfa_map", "CIPFA neighbours child poverty map FYE 2025")
 
@@ -614,16 +626,35 @@ with tab2:
     }
     col_name, label, cscale = METRIC_MAP[map_metric]
 
-    fig_map = px.choropleth_map(
-        agg, geojson=wcc_geojson, locations="LSOA_CODE",
-        featureidkey="properties.LSOA21CD",
-        color=col_name, hover_name="LSOA_NAME",
-        hover_data={col_name:":.1f","LSOA_CODE":True},
-        color_continuous_scale=cscale, zoom=12,
-        center={"lat":51.512,"lon":-0.155}, opacity=0.75,
+    # Inject 'id' into LSOA features — required for go.Choroplethmap
+    _wcc_gj = {"type":"FeatureCollection","features":[]}
+    for _f in wcc_geojson["features"]:
+        _fc = {k:v for k,v in _f.items()}
+        _fc["id"] = _f["properties"]["LSOA21CD"]
+        _wcc_gj["features"].append(_fc)
+
+    _lsoa_codes = agg["LSOA_CODE"].tolist()
+    _lsoa_z     = agg[col_name].tolist()
+    _lsoa_names = agg["LSOA_NAME"].tolist()
+
+    fig_map = go.Figure(go.Choroplethmap(
+        geojson=_wcc_gj,
+        locations=_lsoa_codes,
+        z=_lsoa_z,
+        text=_lsoa_names,
+        hovertemplate="<b>%{text}</b><br>" + label + ": %{z:.1f}<extra></extra>",
+        colorscale=cscale,
+        marker_opacity=0.75, marker_line_width=0.3,
+        colorbar_title=label,
+    ))
+    fig_map.update_layout(
+        map_style="carto-positron", map_zoom=12,
+        map_center={"lat":51.512,"lon":-0.155},
+        margin=dict(l=0,r=0,t=50,b=0), height=560,
         title=f"{label} by Westminster LSOA (Census 2021)",
-        map_style="carto-positron", labels={col_name:label})
-    fig_map.update_layout(margin=dict(l=0,r=0,t=50,b=0), height=560)
+        title_font_size=13, font_family="Arial", font_color="#0B2265",
+        paper_bgcolor="white",
+    )
     st.plotly_chart(fig_map, use_container_width=True)
     pptx_btn(fig_map, f"lsoa_{col_name}", f"{label} — Westminster LSOAs (Census 2021)")
 
