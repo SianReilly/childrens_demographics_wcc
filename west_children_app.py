@@ -13,6 +13,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 import topojson as tp
+try:
+    from pyproj import Transformer as _ProjTransformer
+    _HAVE_PYPROJ = True
+except ImportError:
+    _HAVE_PYPROJ = False
 
 warnings.filterwarnings("ignore")
 
@@ -123,17 +128,16 @@ def _pct(s):
 def _num(s):
     return pd.to_numeric(s.astype(str).str.replace(",","",regex=False).str.strip(), errors="coerce")
 
-def apply_wcc_style(fig, source="", title_pad=50):
+def apply_wcc_style(fig, source="", title_pad=10):
+    """Apply WCC brand styling. Title should be in st.caption() above chart, not in plotly."""
     fig.update_layout(
         font_family="Arial", font_color=WCC["blue"],
         plot_bgcolor="white", paper_bgcolor="white",
-        title_font_size=13, title_font_color=WCC["blue"],
-        title_font_family="Arial",
-        title_x=0, title_xanchor="left",
+        title={"text": ""},   # Explicitly empty — prevents 'undefined' in plotly 6.x
         margin=dict(l=50, r=30, t=title_pad, b=55),
         legend=dict(
             orientation="h", yanchor="bottom", y=1.02, x=0,
-            font=dict(family="Arial", size=11), title=None
+            font=dict(family="Arial", size=11), title=dict(text="")
         ),
     )
     fig.update_xaxes(showgrid=False, linecolor="#cccccc", showline=True,
@@ -156,6 +160,27 @@ def img_btn(fig, key):
     except Exception as e:
         st.caption(f"_Download unavailable: {e}_")
 
+def highlight_westminster(fig, df, x_col, y_col, name_col="Borough", name="Westminster",
+                          marker_size=14, color=None, label=None):
+    """Add a highlighted marker + annotation for Westminster on any scatter/line chart."""
+    wcc_rows = df[df[name_col].str.contains(name, na=False) | df.get(name_col, pd.Series()).eq(name)]
+    if hasattr(df, name_col) and name_col in df.columns:
+        wcc_rows = df[df[name_col] == name]
+    if wcc_rows.empty:
+        return fig
+    x_val = wcc_rows[x_col].iloc[0]
+    y_val = wcc_rows[y_col].iloc[0]
+    lbl   = label or f"Westminster: {y_val:.1f}"
+    fig.add_trace(go.Scatter(
+        x=[x_val], y=[y_val], mode="markers+text",
+        marker=dict(size=marker_size, color=color or WCC["yellow"],
+                    line=dict(width=2, color=WCC["blue"])),
+        text=[lbl], textposition="top center",
+        textfont=dict(color=WCC["blue"], size=11, family="Arial"),
+        name="Westminster", showlegend=False
+    ))
+    return fig
+
 def _card(col, title, value, sub, help_txt):
     col.metric(title, value, help=help_txt)
     col.markdown(f"<div style='font-size:.78em;color:#666;margin-top:-14px'>{sub}</div>",
@@ -169,6 +194,30 @@ def _inject_id(geojson, id_property):
         fc = {k: v for k, v in f.items()}
         fc["id"] = f["properties"][id_property]
         out["features"].append(fc)
+    return out
+
+def _reproject_osgb_to_wgs84(geojson):
+    """Reproject GeoJSON coordinates from OSGB EPSG:27700 to WGS84 EPSG:4326.
+    Required when the GeoJSON uses British National Grid eastings/northings.
+    """
+    if not _HAVE_PYPROJ:
+        st.warning("pyproj not installed — LSOA map coordinates cannot be reprojected. Add 'pyproj' to requirements.txt.")
+        return geojson
+    import copy
+    tr = _ProjTransformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
+    out = copy.deepcopy(geojson)
+    for feat in out["features"]:
+        geom = feat["geometry"]
+        if geom["type"] == "Polygon":
+            geom["coordinates"] = [
+                [list(tr.transform(x, y)) for x, y in ring]
+                for ring in geom["coordinates"]
+            ]
+        elif geom["type"] == "MultiPolygon":
+            geom["coordinates"] = [
+                [[list(tr.transform(x, y)) for x, y in ring] for ring in poly]
+                for poly in geom["coordinates"]
+            ]
     return out
 
 def lsoa_choropleth(geojson, codes, z_vals, names, label, colorscale, height=540):
@@ -404,9 +453,13 @@ def load_egdi():
 
 @st.cache_data(show_spinner=False)
 def load_wcc_geojson():
-    """Westminster 2021 LSOA boundaries with injected 'id' field."""
+    """Westminster 2021 LSOA boundaries — reprojected to WGS84, with 'id' injected."""
     with open(_dp("ONS_LSOA_2021 (1).json")) as f:
         gj = json.load(f)
+    # Check if coordinates are in OSGB (British National Grid) — values >> 1000
+    sample_coord = gj["features"][0]["geometry"]["coordinates"][0][0]
+    if abs(sample_coord[0]) > 1000:  # OSGB eastings are ~500000
+        gj = _reproject_osgb_to_wgs84(gj)
     return _inject_id(gj, "LSOA21CD")
 
 @st.cache_data(show_spinner=False)
@@ -523,10 +576,18 @@ with tab1:
                                           for _, r in df_nb.iterrows()},
                       text="Pct_2025")
         fig1.update_traces(texttemplate="%{text:.1f}%", textposition="outside", showlegend=False)
+        # Highlight Westminster bar with yellow outline
+        wcc_idx = df_nb["Borough"].tolist().index("Westminster") if "Westminster" in df_nb["Borough"].tolist() else -1
+        if wcc_idx >= 0:
+            fig1.add_shape(type="rect",
+                y0=wcc_idx-0.4, y1=wcc_idx+0.4,
+                x0=0, x1=df_nb["Pct_2025"].iloc[wcc_idx],
+                line=dict(color=WCC["yellow"], width=3), fillcolor="rgba(0,0,0,0)",
+                yref="y", xref="x")
         fig1.update_xaxes(range=[0, df_nb["Pct_2025"].max()*1.22], title="% children in low income (AHC)")
         fig1.update_yaxes(title="")
         apply_wcc_style(fig1, "DWP Children in Low Income Families FYE 2025")
-        st.caption("Islington highest; Kensington & Chelsea lowest")
+        st.caption("Islington highest; Kensington & Chelsea lowest — Westminster highlighted")
         st.plotly_chart(fig1, use_container_width=True)
         img_btn(fig1, "child_poverty_bar")
 
@@ -537,10 +598,17 @@ with tab1:
                        color_discrete_map={b: BOROUGH_COLOURS.get(b, WCC["blue"])
                                           for b in df_ts2["Borough"].unique()})
         fig2.update_traces(line_width=2.5)
+        # Make Westminster line thicker and add yellow markers
+        for trace in fig2.data:
+            if hasattr(trace, 'name') and trace.name == "Westminster":
+                trace.line.width = 4
+                trace.marker.size = 12
+                trace.marker.color = WCC["yellow"]
+                trace.marker.line = dict(width=2, color=WCC["blue"])
         fig2.update_yaxes(title="% children in low income", rangemode="tozero")
         fig2.update_xaxes(title="")
         apply_wcc_style(fig2, "DWP Children in Low Income Families FYE 2025")
-        st.caption("All neighbours saw child poverty fall 2024→2025")
+        st.caption("All neighbours saw child poverty fall 2024→2025 — Westminster highlighted")
         st.plotly_chart(fig2, use_container_width=True)
         img_btn(fig2, "child_poverty_trend")
 
@@ -671,6 +739,17 @@ with tab3:
             fig_ae = px.bar(wcc_eth, x="att8_2425", y="ethnic_group", orientation="h",
                             color_discrete_sequence=[WCC["blue"]], text="att8_2425")
             fig_ae.update_traces(texttemplate="%{text:.1f}", textposition="outside")
+            # Highlight the 'All ... pupils' bar (top summary row) in yellow
+            all_idx_list = [i for i,g in enumerate(wcc_eth["ethnic_group"].tolist())
+                            if "all" in str(g).lower()]
+            if all_idx_list:
+                ai = all_idx_list[0]
+                wcc_eth_list = wcc_eth["ethnic_group"].tolist()
+                fig_ae.add_shape(type="rect",
+                    y0=ai-0.4, y1=ai+0.4,
+                    x0=0, x1=float(wcc_eth["att8_2425"].iloc[ai]),
+                    line=dict(color=WCC["yellow"], width=3), fillcolor="rgba(0,0,0,0)",
+                    yref="y", xref="x")
             fig_ae.update_xaxes(title="Average Attainment 8 score", range=[0, 80])
             fig_ae.update_yaxes(title="")
             apply_wcc_style(fig_ae, "DfE KS4 2024/25, state-funded schools")
@@ -697,38 +776,7 @@ with tab3:
                 st.plotly_chart(fig_nb_att, use_container_width=True)
                 img_btn(fig_nb_att, "cipfa_att8")
 
-    # ── KS4 attainment map — Attainment 8 by CIPFA neighbour
-    st.divider()
-    st.subheader("Geographic context — KS4 attainment by CIPFA neighbour")
-    if not ks4_nb.empty:
-        all_nb_map = (ks4_nb[ks4_nb["ethnic_group"].str.lower().str.contains("all", na=False) |
-                             ks4_nb["subgroup"].str.lower().str.contains("all pupils", na=False)]
-                      .drop_duplicates("la"))
-        # Map LA names to area codes
-        la_to_code = {v.replace("and Fulham","& Fulham").replace("and Chelsea","& Chelsea"): k
-                      for k,v in {v:k for k,v in NEIGHBOURS.items()}.items()}
-        la_to_code = {la: code for la, code in NEIGHBOURS.items()}
-        # Reverse: borough name → code
-        name_to_code = dict(zip(NEIGHBOURS.keys(), NEIGHBOURS.values()))
-        all_nb_map["Area_Code"] = all_nb_map["la"].map(name_to_code)
-        all_nb_map = all_nb_map.dropna(subset=["Area_Code","att8_2425"])
-        if not all_nb_map.empty:
-            ks4_gj = {"type":"FeatureCollection",
-                      "features":[f for f in borough_geojson["features"] if f["id"] in nb_codes]}
-            fig_ks4_map = borough_choropleth(
-                ks4_gj,
-                codes=all_nb_map["Area_Code"].tolist(),
-                z_vals=all_nb_map["att8_2425"].tolist(),
-                names=all_nb_map["la"].tolist(),
-                label="Avg Attainment 8",
-                colorscale=[[0,"#E8EBF5"],[0.5,WCC["amaranth"]],[1.0,WCC["blue"]]],
-            )
-            # Override hover to show score not %
-            fig_ks4_map.data[0].hovertemplate = "<b>%{text}</b><br>Attainment 8: %{z:.1f}<extra></extra>"
-            st.plotly_chart(fig_ks4_map, use_container_width=True)
-            img_btn(fig_ks4_map, "ks4_cipfa_map")
-        else:
-            st.info("KS4 all-pupils data not available for map.")
+
 
     # ── Time series
     st.divider()
@@ -742,11 +790,17 @@ with tab3:
             fig_ts = px.line(ts_d, x="year", y="att8", color="la", markers=True,
                              color_discrete_map={la: BOROUGH_COLOURS.get(la, WCC["blue"])
                                                for la in ts_d["la"].unique()})
+            for trace in fig_ts.data:
+                if hasattr(trace, 'name') and trace.name == "Westminster":
+                    trace.line.width = 4
+                    trace.marker.size = 10
+                    trace.marker.color = WCC["yellow"]
+                    trace.marker.line = dict(width=2, color=WCC["blue"])
             fig_ts.update_traces(line_width=2.5)
             fig_ts.update_xaxes(title="Academic year")
             fig_ts.update_yaxes(title="Avg Attainment 8 score", rangemode="tozero")
             apply_wcc_style(fig_ts, "DfE KS4 Performance, state-funded schools, Explore Education Statistics")
-            st.caption("Attainment 8 dipped 2020/21–2021/22 (COVID disruption) then recovered")
+            st.caption("Attainment 8 dipped 2020/21–2021/22 (COVID disruption) then recovered — Westminster highlighted")
             st.plotly_chart(fig_ts, use_container_width=True)
             img_btn(fig_ts, "att8_trend")
 
@@ -836,6 +890,27 @@ with tab5:
     st.subheader("Ethnic Group Deprivation Index (EGDI) — Westminster & CIPFA neighbours")
     st.caption("EGDI measures how unevenly deprivation is distributed across ethnic groups within a local authority. Source: Lloyd et al. (2023), gedi.ac.uk/egdi")
 
+    with st.expander("ℹ️ How the EGDI is calculated"):
+        st.markdown("""
+**The Ethnic Group Deprivation Index (EGDI)** was developed by Lloyd, Catney and colleagues (2023) to measure *within-area* ethnic inequality in deprivation.
+
+**Core metric — EDI score:** For each ethnic group in each LSOA, an Ethnic Deprivation Index (EDI) score is calculated using four deprivation dimensions from the Index of Multiple Deprivation 2019 (IMD):
+- **Employment deprivation** (unemployment rate)
+- **Education deprivation** (low qualifications rate)
+- **Occupational deprivation** (% in routine/semi-routine occupations)
+- **Housing deprivation** (% in poor-quality housing or overcrowded)
+
+Each dimension is ranked nationally, standardised, and combined into an overall EDI score per ethnic group per LSOA.
+
+**Range:** The key EGDI summary statistic is the *Range* — the difference between the EDI score of the most deprived and least deprived ethnic group within each LSOA. A higher Range = greater inequality between groups.
+
+**Borough classification:** LAs are classified as having *More*, *Less* or *Similar* ethnic inequality relative to national patterns, based on how their LSOAs distribute across national deprivation deciles.
+
+**Note on NAs:** NAs occur where an ethnic group has fewer than a suppression threshold of individuals in a given LSOA, or is absent entirely.
+
+*Reference: Lloyd, C.D., Catney, G. et al. (2023). The Ethnic Group Deprivation Index. [gedi.ac.uk/egdi](https://gedi.ac.uk/egdi/)*
+        """)
+
     nb_egdi_codes = list(NEIGHBOURS.values())
     df_egdi_nb = df_egdi[df_egdi["LA_Code"].isin(nb_egdi_codes)].copy()
     df_egdi_nb["LA_Name"] = (df_egdi_nb["LA_Name"]
@@ -863,11 +938,11 @@ with tab5:
         fig_dec.update_xaxes(tickvals=list(range(1,11)))
         fig_dec.update_yaxes(rangemode="tozero")
         fig_dec.update_layout(
-            title=None,
             legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0,
                         font=dict(size=10, family="Arial"), title=None),
             margin=dict(l=50, r=20, t=50, b=80),
-            height=380, font_family="Arial", font_color=WCC["blue"],
+            height=380,
+            font_family="Arial", font_color=WCC["blue"],
             plot_bgcolor="white", paper_bgcolor="white",
         )
         fig_dec.update_xaxes(showgrid=False, linecolor="#ccc", showline=True, tickfont=dict(size=11))
