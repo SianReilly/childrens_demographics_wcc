@@ -832,7 +832,7 @@ with tab4:
         fig_eb.update_xaxes(title="Dependent children")
         fig_eb.update_yaxes(title="")
         apply_wcc_style(fig_eb, "Census 2021, ONS Nomis RM033")
-        st.caption("White (30%) and Asian (24%) are the largest ethnic groups")
+        st.caption("White (37%) and Asian (17%) are the largest ethnic groups")
         st.plotly_chart(fig_eb, use_container_width=True)
         img_btn(fig_eb, "wcc_ethnic")
 
@@ -850,7 +850,7 @@ with tab4:
         fig_age.update_yaxes(rangemode="tozero", title="% of dependent children")
         fig_age.update_xaxes(title="Age group")
         apply_wcc_style(fig_age, "Census 2021, ONS Nomis RM006")
-        st.caption("10–15 is the largest age group (36%)")
+        st.caption("0-4 is the largest age group (36%)")
         st.plotly_chart(fig_age, use_container_width=True)
         img_btn(fig_age, "wcc_age")
 
