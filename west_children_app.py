@@ -589,7 +589,7 @@ def load_rm012():
     """RM012 — Dependent children by ethnic group of Household Reference Person (HRP)
     by age (Census 2021). Returns LONG: LSOA_CODE, LSOA_NAME, hrp_group, age_band, count.
     HRP groups: Asian / Black / Mixed / White / Other. Age bands: 0-2, 3-4, 5-11, 12-15, 16-18."""
-    fn = "RM012_dependent_children_by_HRP_ethnic_group_by_age.xlsx"
+    fn = "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx"
     if not _exists(fn):
         # tolerant of alternative file names
         for alt in ["RM012.xlsx", "RM012_ethnic_group_HRP_age.xlsx"]:
