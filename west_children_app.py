@@ -13,7 +13,7 @@
 # 8. Westminster ward + London borough boundaries — ONS / London Datastore
 # ──────────────────────────────────────────────────────────────────────────────
 
-import os, io, json, copy, warnings
+import os, io, json, copy, glob, re, warnings
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -41,15 +41,44 @@ _ALIASES = {
         "ONS_LSOA_2021 (1).json", "ONS_LSOA_2021__1_.json", "ONS_LSOA_2021_(1).json"],
     "Ward LSOA Lookup.xlsx": [
         "Ward LSOA Lookup.xlsx", "Ward_LSOA_Lookup.xlsx", "Ward LSOA Lookup .xlsx"],
+    # census tables — accept whatever RM0xx… variant is actually committed
+    "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx": [
+        "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx",
+        "RM012_dependent_children_by_HRP_ethnic_group_by_age.xlsx", "RM012.xlsx"],
+    "RM006_age_of_youngest_dependent_child_by_household_type.xlsx": [
+        "RM006_age_of_youngest_dependent_child_by_household_type.xlsx", "RM006.xlsx"],
+    "RM033_ethic_group_dependent_child_by_sex.xlsx": [
+        "RM033_ethic_group_dependent_child_by_sex.xlsx",
+        "RM033_ethnic_group_dependent_child_by_sex.xlsx", "RM033.xlsx"],
 }
+
+def _stem_key(s):
+    """Normalise a filename for fuzzy matching: lowercase, strip non-alphanumerics."""
+    return re.sub(r"[^a-z0-9]", "", os.path.splitext(str(s))[0].lower())
 
 def _dp(name):
     aliases = list(dict.fromkeys(_ALIASES.get(name, []) + [name]))
+    # 1) exact / alias match
     for d in _SEARCH_DIRS:
         for a in aliases:
             p = os.path.join(d, a)
             if os.path.exists(p):
                 return p
+    # 2) fuzzy fallback — match the leading token (e.g. 'RM012') or the full stem
+    ext = os.path.splitext(name)[1].lower()
+    want_keys = {_stem_key(a) for a in aliases}
+    lead = re.match(r"[A-Za-z]+\d+", name)          # e.g. 'RM012'
+    lead = lead.group(0).lower() if lead else None
+    for d in _SEARCH_DIRS:
+        if not os.path.isdir(d):
+            continue
+        for f in sorted(glob.glob(os.path.join(d, "*"))):
+            b = os.path.basename(f)
+            if ext and os.path.splitext(b)[1].lower() != ext:
+                continue
+            k = _stem_key(b)
+            if k in want_keys or (lead and k.startswith(lead)):
+                return f
     return os.path.join("/mnt/user-data/uploads", name)
 
 def _exists(name):
@@ -80,12 +109,36 @@ NEIGHBOURS = {  # CIPFA statistical neighbours
 }
 WARD_TOP3 = ["Westbourne", "Church Street", "Harrow Road"]  # highest child poverty
 
+# Fixed, consistent colour per CIPFA borough for ALL borough-comparator charts
+# (bars, lines, radar). Westminster is the only strong colour; the five neighbours
+# get distinct but deliberately muted/desaturated hues so they're each identifiable
+# yet never compete with Westminster. Maps and many-bar charts keep the blue scheme.
+BOROUGH_COLOURS = {
+    "Westminster":          FOCAL,       # strong WCC navy
+    "Kensington & Chelsea": "#5FA8A0",   # muted teal
+    "Camden":               "#D0A44C",   # muted gold
+    "Hammersmith & Fulham": "#C57B8A",   # muted rose
+    "Islington":            "#8598CE",   # muted periwinkle
+    "Wandsworth":           "#94B36A",   # muted olive
+}
+# spare muted hues if a comparator outside the CIPFA six ever appears
+_EXTRA_MUTED = ["#B08E6A", "#7FB0A0", "#A97BA5", "#6E9BB3", "#C0906B", "#8AA98A"]
+
 def borough_palette(categories, focal="Westminster"):
-    """Strong colour for Westminster, pale grey-blue for every other borough."""
-    return {c: (FOCAL if c == focal else CONTEXT_BAR) for c in categories}
+    """Distinct but muted colour per borough (consistent everywhere); Westminster strong."""
+    out, ei = {}, 0
+    for c in categories:
+        cc = str(c)
+        if cc == focal:
+            out[c] = FOCAL
+        elif cc in BOROUGH_COLOURS:
+            out[c] = BOROUGH_COLOURS[cc]
+        else:
+            out[c] = _EXTRA_MUTED[ei % len(_EXTRA_MUTED)]; ei += 1
+    return out
 
 # ── PAGE CONFIG ───────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Westminster Children's Demographics",
+st.set_page_config(page_title="WCC Children's Demographics",
                    page_icon="🏙️", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown(f"""<style>
@@ -410,9 +463,11 @@ def coverage_weighted_ward(lookup, lsoa_df, value_col, code_col="LSOA_CODE"):
     m = lookup.merge(lsoa_df[[code_col, value_col]], on=code_col, how="inner").dropna(subset=[value_col])
     if m.empty:
         return pd.DataFrame(columns=["Ward", value_col])
-    g = m.groupby("Ward").apply(
-        lambda d: np.average(d[value_col], weights=d["coverage"]) if d["coverage"].sum() else np.nan)
-    return g.reset_index(name=value_col)
+    m = m.copy()
+    m["_wv"] = m[value_col] * m["coverage"]
+    g = m.groupby("Ward", as_index=False).agg(_wv=("_wv", "sum"), _w=("coverage", "sum"))
+    g[value_col] = np.where(g["_w"] > 0, g["_wv"] / g["_w"], np.nan)
+    return g[["Ward", value_col]]
 
 # ══════════════════════════════════════════════════════════════════════════════
 # DATA LOADERS — existing datasets (resolved from data/ folder; degrade if absent)
@@ -525,6 +580,60 @@ def _lsoa_code(s):
 def _lsoa_name(s):
     return s.astype(str).str.replace(r"E\d{8,}\s*:?\s*", "", regex=True).str.strip()
 
+def _read_stacked_census(fn, block_key, age_map, cat_clean=None, max_hdr_scan=8):
+    """Parse a Nomis 'stacked block' export. Each block starts on a row whose first
+    cell contains `block_key` (e.g. 'household type'); that row's second cell is the
+    category value (e.g. 'One-person household'). A header row inside the block holds
+    the age-band labels across columns; the rows beneath are LSOA × counts. Blocks are
+    stacked down the sheet (this is the shape RM006 uses — a household type every
+    ~136 rows). Returns a list of (LSOA_CODE, LSOA_NAME, category, age, count) or None
+    if the sheet is not in this stacked shape (so the caller can try a wide parser)."""
+    raw = pd.read_excel(_dp(fn), header=None)
+    n, ncol = raw.shape
+    col0 = raw.iloc[:, 0].fillna("").astype(str).str.strip().str.lower()
+    bk = block_key.lower()
+    starts = [i for i in range(n) if bk in col0.iloc[i]]
+    if not starts:
+        return None
+    starts_ext = starts + [n]
+    recs = []
+    for bi in range(len(starts)):
+        r0, r1 = starts[bi], starts_ext[bi + 1]
+        cat = str(raw.iloc[r0, 1]).strip() if ncol > 1 else ""
+        if not cat or cat.lower() == "nan":
+            continue
+        if cat_clean:
+            cat = cat_clean(cat)
+        age_cols, age_row = {}, None
+        for rr in range(r0 + 1, min(r0 + 1 + max_hdr_scan, r1)):
+            row = raw.iloc[rr].fillna("").astype(str)
+            hits = {}
+            for ci in range(1, ncol):
+                lab = row.iloc[ci].strip().lower()
+                for key, val in age_map.items():
+                    if key in lab:
+                        hits[ci] = val
+                        break
+            if len(hits) >= 2:
+                age_cols, age_row = hits, rr
+                break
+        if not age_cols:
+            continue
+        for rr in range(age_row + 1, r1):
+            c0 = str(raw.iloc[rr, 0])
+            c1 = str(raw.iloc[rr, 1]) if ncol > 1 else ""
+            code = _lsoa_code(pd.Series([c0 + " " + c1])).iloc[0]
+            nm0 = _lsoa_name(pd.Series([c0])).iloc[0]
+            name = nm0 if (nm0 and nm0.lower() not in ("nan", "")) else (
+                c1 if re.search(r"[A-Za-z]", c1) else "")
+            key_code = code if (isinstance(code, str) and code) else name
+            if not key_code or str(key_code).lower() == "nan":
+                continue
+            for ci, age in age_cols.items():
+                recs.append((key_code, name, cat, age,
+                             pd.to_numeric(raw.iloc[rr, ci], errors="coerce")))
+    return recs
+
 @st.cache_data(show_spinner=False)
 def load_rm006():
     """RM006 — Age of youngest dependent child by household type (Census 2021).
@@ -532,8 +641,23 @@ def load_rm006():
     Handles a 2-row (household type / age) Nomis header; falls back to a flat
     age-only export tagged household_type='All households'."""
     fn = "RM006_age_of_youngest_dependent_child_by_household_type.xlsx"
+    COLS = ["LSOA_CODE", "LSOA_NAME", "household_type", "youngest_age", "count"]
     if not _exists(fn):
-        return pd.DataFrame(columns=["LSOA_CODE", "LSOA_NAME", "household_type", "youngest_age", "count"])
+        return pd.DataFrame(columns=COLS)
+    # AGE labels (order longest/most-specific first to avoid partial mis-matches)
+    AGE_MAP = {"no dependent": "No dependent children", "10 to 15": "10 to 15",
+               "16 to 18": "16 to 18", "5 to 9": "5 to 9", "0 to 4": "0 to 4",
+               "10-15": "10 to 15", "16-18": "16 to 18", "5-9": "5 to 9", "0-4": "0 to 4"}
+    # PRIMARY: the real RM006 shape — a stacked block per household type
+    try:
+        recs = _read_stacked_census(fn, "household type", AGE_MAP)
+    except Exception:
+        recs = None
+    if recs:
+        df = pd.DataFrame(recs, columns=COLS).dropna(subset=["count"])
+        if df["household_type"].nunique() > 1:
+            return df.reset_index(drop=True)
+    # FALLBACK: older wide (2-row header) / flat exports
     HH = ["One-person household", "Married or civil partnership couple household",
           "Cohabiting couple household", "Lone parent household", "Multi-person household"]
     AGES = {"No dependent children": "No dependent children",
@@ -590,16 +714,19 @@ def load_rm012():
     by age (Census 2021). Returns LONG: LSOA_CODE, LSOA_NAME, hrp_group, age_band, count.
     HRP groups: Asian / Black / Mixed / White / Other. Age bands: 0-2, 3-4, 5-11, 12-15, 16-18."""
     fn = "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx"
+    COLS = ["LSOA_CODE", "LSOA_NAME", "hrp_group", "age_band", "count"]
     if not _exists(fn):
-        # tolerant of alternative file names
-        for alt in ["RM012.xlsx", "RM012_dependent_children_by_ethnic_group_of_HRP"]:
-            if _exists(alt):
-                fn = alt
-                break
-        else:
-            return pd.DataFrame(columns=["LSOA_CODE", "LSOA_NAME", "hrp_group", "age_band", "count"])
+        return pd.DataFrame(columns=COLS)
     HRP = {"Asian": "Asian", "Black": "Black", "Mixed": "Mixed", "White": "White", "Other": "Other"}
     AGES = {"0 to 2": "0-2", "3 to 4": "3-4", "5 to 11": "5-11", "12 to 15": "12-15", "16 to 18": "16-18"}
+
+    def _hrp_clean(label):
+        l = str(label).lower()
+        for k, v in HRP.items():
+            if k.lower() in l:
+                return v
+        return str(label).strip()
+
     raw = pd.read_excel(_dp(fn), header=None)
     hdr_row = None
     for r in range(12):
@@ -623,7 +750,17 @@ def load_rm012():
         name = pd.Series([str(row.iloc[0])]).pipe(_lsoa_name).iloc[0]
         for ci, grp, age in spec:
             out.append((code, name, grp, age, pd.to_numeric(row.iloc[ci], errors="coerce")))
-    return pd.DataFrame(out, columns=["LSOA_CODE", "LSOA_NAME", "hrp_group", "age_band", "count"]).dropna(subset=["LSOA_CODE"])
+    wide = pd.DataFrame(out, columns=COLS).dropna(subset=["LSOA_CODE"])
+    if not wide.empty:
+        return wide
+    # FALLBACK: stacked-block layout (one block per HRP ethnic group)
+    try:
+        recs = _read_stacked_census(fn, "ethnic group", AGES, cat_clean=_hrp_clean)
+    except Exception:
+        recs = None
+    if recs:
+        return pd.DataFrame(recs, columns=COLS).dropna(subset=["count"]).reset_index(drop=True)
+    return wide
 
 @st.cache_data(show_spinner=False)
 def load_rm033():
@@ -733,27 +870,61 @@ def load_borough_geojson():
     return _inject_id(gj, id_prop)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# LOAD EVERYTHING
+# LOAD EVERYTHING  — every loader is isolated so one missing/corrupt file can
+# never crash the whole dashboard; it just disables the sections that need it.
 # ══════════════════════════════════════════════════════════════════════════════
+def _diagnose_file(name):
+    """Explain *why* a data file could not be read (esp. a corrupt/LFS .xlsx)."""
+    p = _dp(name)
+    if not os.path.exists(p):
+        return f"`{name}` was not found on the server."
+    try:
+        with open(p, "rb") as fh:
+            head = fh.read(64)
+    except Exception:
+        return f"`{name}` could not be opened."
+    if head.startswith(b"version https://git-lfs"):
+        return (f"`{name}` is only a **Git LFS pointer** on the server, not the real "
+                "spreadsheet — the binary wasn't pulled at deploy time. Commit the actual "
+                "file (or fetch LFS objects), then redeploy.")
+    if name.lower().endswith((".xlsx", ".xlsm")) and head[:2] != b"PK":
+        return (f"`{name}` on the server is **not a valid .xlsx** (its bytes don't start with "
+                "the ZIP signature). This almost always means the file was corrupted when it "
+                "was committed to Git as if it were text. Add a `.gitattributes` line "
+                "`*.xlsx binary`, re-commit the file (or re-upload it through the GitHub web "
+                "interface), then redeploy.")
+    return None
+
+def _safe_load(loader, default, probe=None):
+    """Run a loader; on any error keep the app alive and surface a clear reason."""
+    try:
+        return loader()
+    except Exception as exc:
+        label = loader.__name__.replace("load_", "").replace("_", " ")
+        reason = _diagnose_file(probe) if probe else None
+        st.warning(f"⚠️ Could not load the **{label}** dataset, so its charts are hidden. "
+                   + (reason or f"({type(exc).__name__}: {exc})"))
+        return default
+
 with st.spinner("Loading datasets…"):
-    df_mye_la    = load_mye_la()
-    df_mye_lsoa  = load_mye_lsoa()
-    df_imd       = load_imd()
-    df_idaci     = load_idaci()
-    ward_gj      = load_ward_geojson()
-    ward_lookup  = load_ward_lookup()
+    df_mye_la    = _safe_load(load_mye_la,    pd.DataFrame(), "MYEs_LA_1991_2024_gender.xlsx")
+    df_mye_lsoa  = _safe_load(load_mye_lsoa,  pd.DataFrame(), "Small_Area_Output_Area_Mid_Year_Estimated.xlsx")
+    df_imd       = _safe_load(load_imd,       pd.DataFrame(), "File_1_IoD2025_Index_of_Multiple_Deprivation.xlsx")
+    df_idaci     = _safe_load(load_idaci,     pd.DataFrame(), "File_3_IoD2025_Supplementary_Indices_IDACI_and_IDAOPI.xlsx")
+    ward_gj      = _safe_load(load_ward_geojson, None,        "Wards_WCC.json")
+    ward_lookup  = _safe_load(load_ward_lookup,  pd.DataFrame(columns=["LSOA_CODE", "Ward", "coverage"]), "Ward LSOA Lookup.xlsx")
     lsoa_to_ward = ward_for_lsoa(ward_lookup)
-    df_li_la     = load_low_income_la()
-    df_li_ward   = load_low_income_ward()
-    df_ks4_eth   = load_ks4_ethnic()
-    df_ks4_ts    = load_ks4_time()
-    df_rm006     = load_rm006()
-    df_rm012     = load_rm012()
-    df_rm033     = load_rm033()
-    df_egdi      = load_egdi()
-    df_egdi_lsoa = load_egdi_lsoa()
-    lsoa_gj      = load_lsoa_geojson()
-    borough_gj   = load_borough_geojson()
+    df_li_la     = _safe_load(load_low_income_la,   pd.DataFrame(), "2_AHC_Relative_LA.csv")
+    df_li_ward   = _safe_load(load_low_income_ward, pd.DataFrame(), "4_AHC_Relative_Ward.csv")
+    df_ks4_eth   = _safe_load(load_ks4_ethnic, pd.DataFrame(), "data-key-stage-4-performance.csv")
+    df_ks4_ts    = _safe_load(load_ks4_time,   pd.DataFrame(), "data-key-stage-4-performance__1_.csv")
+    df_rm006     = _safe_load(load_rm006, pd.DataFrame(), "RM006_age_of_youngest_dependent_child_by_household_type.xlsx")
+    df_rm012     = _safe_load(load_rm012, pd.DataFrame(), "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx")
+    df_rm033     = _safe_load(load_rm033, pd.DataFrame(), "RM033_ethic_group_dependent_child_by_sex.xlsx")
+    df_egdi      = _safe_load(load_egdi,      pd.DataFrame(), "EGDI-Local-Authority-profiles.xlsx")
+    df_egdi_lsoa = _safe_load(load_egdi_lsoa, pd.DataFrame(), "EGDI.xlsx")
+    lsoa_gj      = _safe_load(load_lsoa_geojson,    None, "ONS_LSOA_2021 (1).json")
+    borough_gj   = _safe_load(load_borough_geojson, None, "Borough_London_LL84.json")
 
 def add_ward(df, code_col="LSOA_CODE"):
     """Attach the LSOA's (dominant) ward as a 'Ward' column + a labelled name."""
@@ -937,7 +1108,7 @@ with tab1:
                 if tr.name == "Westminster":
                     tr.line.width = 4; tr.marker.size = 11
                 else:
-                    tr.line.width = 2; tr.line.color = CONTEXT_LINE; tr.marker.color = CONTEXT_LINE
+                    tr.line.width = 2; tr.marker.size = 6   # distinct colour kept (from palette)
             fig2.update_yaxes(title="% children in low income", rangemode="tozero")
             fig2.update_xaxes(title="")
             show_chart(fig2, "child_poverty_trend", "DWP CiLIF, Table 2 (LA), FYE 2024–25")
@@ -1102,6 +1273,7 @@ with tab2:
         chart_title(f"Three decades of change — children {('0–19' if a_la=='All 0–19' else a_la)}, {g_la.lower()}, 1991–2024",
                     "ONS mid-year estimates · Westminster in strong colour, CIPFA neighbours muted")
         figt = go.Figure()
+        _bpal = borough_palette(list(NEIGHBOURS))
         for b in NEIGHBOURS:
             sb = dla[dla["area"].str.contains(b.replace("& ", "").split()[0], case=False, na=False)]
             sb = dla[dla["area"] == b] if (dla["area"] == b).any() else sb
@@ -1111,8 +1283,8 @@ with tab2:
             focal = (b == "Westminster")
             figt.add_trace(go.Scatter(
                 x=ser["year"], y=ser["population"], mode="lines", name=b,
-                line=dict(color=FOCAL if focal else CONTEXT_LINE, width=3.5 if focal else 1.5),
-                opacity=1.0 if focal else 0.9,
+                line=dict(color=_bpal[b], width=3.8 if focal else 1.8),
+                opacity=1.0 if focal else 0.95,
                 hovertemplate="<b>"+b+"</b><br>%{x}: %{y:,} children<extra></extra>"))
         figt.update_xaxes(title="Year", dtick=5)
         figt.update_yaxes(title="Children")
@@ -1264,93 +1436,111 @@ with tab2:
 # TAB 3 — KS4 ATTAINMENT
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.subheader("Key Stage 4 attainment — Westminster vs inner-London")
+    st.subheader("Key Stage 4 attainment — Westminster vs CIPFA neighbours")
     st.markdown(
         "**Dataset:** DfE *Key Stage 4 performance*, accessed via Explore Education Statistics. "
         "**Attainment 8** is a pupil's average grade across eight core GCSE subjects (max 90). Here it "
-        "is shown for Westminster against inner-London local authorities and its CIPFA neighbours, by "
-        "ethnic group, over time, and across boroughs. Westminster is always in strong colour; "
-        "comparators are muted.")
+        "is shown for Westminster against its CIPFA neighbours, by ethnic group, over time, and across "
+        "boroughs. In the borough-comparison charts each neighbour keeps its own colour (consistent with "
+        "the other tabs); Westminster is always strongest.")
     legend_hint()
 
-    # Attainment 8 by ethnic group (Westminster focal)
+    _ALL_ETH = ("total", "all", "all pupils", "all ethnic groups")
     if df_ks4_eth.empty:
         st.info("KS4 ethnicity file `data-key-stage-4-performance.csv` not found in the data folder.")
     else:
+        # Shared ethnicity selector — drives BOTH the borough bar and the borough map
+        specific = sorted(g for g in df_ks4_eth["ethnic_group"].dropna().unique()
+                          if str(g).lower() not in _ALL_ETH)
+        eth_opts = ["Average (all ethnicities)"] + specific
+        sel_eth = st.selectbox("Ethnic group (applies to the bar and the map below)",
+                               eth_opts, key="ks4_eth_sel")
+
+        def _ks4_base(df):
+            if sel_eth == "Average (all ethnicities)":
+                tot = df[df["ethnic_group"].astype(str).str.lower().isin(_ALL_ETH)]
+                src = tot if not tot.empty else df
+            else:
+                src = df[df["ethnic_group"] == sel_eth]
+            return src.dropna(subset=["att8_2425"]).groupby("la", as_index=False)["att8_2425"].mean()
+
+        base = _ks4_base(df_ks4_eth)
+        cipfa = list(NEIGHBOURS)                      # CIPFA borough names (with & )
+        bpal = borough_palette(cipfa)
+
+        # ── Borough comparison bar — CIPFA neighbours, each a distinct muted colour
+        bar = base[base["la"].isin(cipfa)].copy().sort_values("att8_2425")
+        if not bar.empty:
+            chart_title(f"Attainment 8 across CIPFA neighbours — {sel_eth.lower()} (2024/25)",
+                        "Average Attainment 8 score · each borough its own colour · Westminster strongest")
+            figc = go.Figure(go.Bar(
+                x=bar["att8_2425"], y=bar["la"], orientation="h",
+                marker_color=[bpal.get(l, CONTEXT_BAR) for l in bar["la"]],
+                text=[f"{v:.1f}" for v in bar["att8_2425"]], textposition="outside",
+                hovertemplate="<b>%{y}</b><br>Attainment 8: %{x:.1f}<extra></extra>"))
+            figc.update_xaxes(title="Average Attainment 8 score")
+            figc.update_yaxes(title="")
+            figc.update_layout(height=360)
+            show_chart(figc, "ks4_cipfa", "DfE KS4 performance, 2024/25")
+
+        # ── Borough map — same ethnicity selection, kept in the blue map scheme
+        if borough_gj is not None and not base.empty:
+            id_by_name = {}
+            for ft in borough_gj["features"]:
+                p = ft["properties"]
+                nm = (p.get("name") or p.get("BoroughNa") or p.get("NAME") or
+                      next((v for k, v in p.items() if isinstance(v, str) and "E09" not in v), ""))
+                id_by_name[str(nm).replace("and Fulham", "& Fulham").replace("and Chelsea", "& Chelsea")] = ft["id"]
+            mp = base.copy()
+            mp["gid"] = mp["la"].map(id_by_name)
+            geo = mp.dropna(subset=["gid"])
+            if not geo.empty:
+                chart_title(f"Attainment 8 across inner-London boroughs — {sel_eth.lower()} (2024/25)",
+                            "DfE KS4 · darker = higher Attainment 8 · hover for the score")
+                figm = choropleth(borough_gj, geo["gid"], geo["att8_2425"], geo["la"],
+                                  "Attainment 8", [[0, "#EDEFF6"], [1, FOCAL]], fmt=":.1f",
+                                  zoom=9.2, center={"lat": 51.51, "lon": -0.12}, height=520)
+                show_chart(figm, "ks4_map", "DfE KS4 performance, 2024/25")
+
+        # ── Within Westminster, by ethnic group (single-borough, blue)
         wcc_e = df_ks4_eth[df_ks4_eth["la"].astype(str).str.contains("Westminster", na=False)].copy()
+        wcc_e = wcc_e[~wcc_e["ethnic_group"].astype(str).str.lower().isin(_ALL_ETH)]
         wcc_e = wcc_e.dropna(subset=["att8_2425"]).sort_values("att8_2425")
         if not wcc_e.empty:
-            chart_title("Attainment 8 in Westminster varies widely by ethnic group (2024/25)",
+            chart_title("Within Westminster, Attainment 8 varies widely by ethnic group (2024/25)",
                         "Average Attainment 8 score, Westminster pupils · DfE KS4")
-            wcc_e["col"] = FOCAL
             fige = go.Figure(go.Bar(
                 x=wcc_e["att8_2425"], y=wcc_e["ethnic_group"], orientation="h",
-                marker_color=wcc_e["col"], text=[f"{v:.1f}" for v in wcc_e["att8_2425"]],
+                marker_color=FOCAL, text=[f"{v:.1f}" for v in wcc_e["att8_2425"]],
                 textposition="outside",
                 hovertemplate="<b>%{y}</b><br>Attainment 8: %{x:.1f}<extra></extra>"))
             fige.update_xaxes(title="Average Attainment 8 score")
             fige.update_yaxes(title="")
             show_chart(fige, "ks4_ethnic", "DfE KS4 performance, 2024/25")
 
-    # CIPFA / inner-London bar (Westminster focal, others muted)
-    if not df_ks4_eth.empty:
-        allsub = df_ks4_eth[df_ks4_eth["ethnic_group"].astype(str).str.contains("Total|All", case=False, na=False)]
-        la_att = (df_ks4_eth.dropna(subset=["att8_2425"])
-                  .groupby("la", as_index=False)["att8_2425"].mean())
-        if not la_att.empty:
-            la_att = la_att.sort_values("att8_2425")
-            la_att["col"] = np.where(la_att["la"].str.contains("Westminster"), FOCAL, CONTEXT_BAR)
-            chart_title("Westminster against inner-London peers — Attainment 8 (2024/25)",
-                        "Average Attainment 8 score · Westminster in colour, peers muted")
-            figc = go.Figure(go.Bar(
-                x=la_att["att8_2425"], y=la_att["la"], orientation="h",
-                marker_color=la_att["col"], text=[f"{v:.1f}" for v in la_att["att8_2425"]],
-                textposition="outside",
-                hovertemplate="<b>%{y}</b><br>Attainment 8: %{x:.1f}<extra></extra>"))
-            figc.update_xaxes(title="Average Attainment 8 score")
-            figc.update_yaxes(title="")
-            figc.update_layout(height=460)
-            show_chart(figc, "ks4_cipfa", "DfE KS4 performance, 2024/25")
-
-            # Borough choropleth of Attainment 8
-            if borough_gj is not None:
-                id_by_name = {}
-                for ft in borough_gj["features"]:
-                    p = ft["properties"]
-                    nm = (p.get("name") or p.get("BoroughNa") or p.get("NAME") or
-                          next((v for k, v in p.items() if isinstance(v, str) and "E09" not in v), ""))
-                    id_by_name[str(nm).replace("and Fulham", "& Fulham").replace("and Chelsea", "& Chelsea")] = ft["id"]
-                la_att["gid"] = la_att["la"].map(id_by_name)
-                geo = la_att.dropna(subset=["gid"])
-                if not geo.empty:
-                    chart_title("Attainment 8 across inner-London boroughs (2024/25)",
-                                "DfE KS4 · darker = higher Attainment 8")
-                    figm = choropleth(borough_gj, geo["gid"], geo["att8_2425"], geo["la"],
-                                      "Attainment 8", [[0, "#EDEFF6"], [1, FOCAL]], fmt=":.1f",
-                                      zoom=9.2, center={"lat": 51.51, "lon": -0.12}, height=520)
-                    show_chart(figm, "ks4_map", "DfE KS4 performance, 2024/25")
-
-    # Attainment 8 trend (remove yellow → Westminster focal, peers muted)
+    # ── Attainment 8 over time — CIPFA neighbours each in a distinct muted colour
     if df_ks4_ts.empty:
         st.info("KS4 time-series file `data-key-stage-4-performance__1_.csv` not found.")
     else:
-        chart_title("Attainment 8 over time — Westminster vs inner-London",
-                    "Average Attainment 8 score · Westminster in strong colour, peers muted")
+        chart_title("Attainment 8 over time — Westminster vs CIPFA neighbours",
+                    "Average Attainment 8 score · each borough its own colour · Westminster strongest")
+        cipfa = list(NEIGHBOURS)
+        tpal = borough_palette(cipfa)
         figt = go.Figure()
-        for la in sorted(df_ks4_ts["la"].unique()):
+        for la in cipfa:
             s = df_ks4_ts[df_ks4_ts["la"] == la].dropna(subset=["att8"]).sort_values("year")
             if s.empty:
                 continue
-            focal = "Westminster" in la
+            focal = (la == "Westminster")
             figt.add_trace(go.Scatter(
-                x=s["year"], y=s["att8"], mode="lines+markers" if focal else "lines", name=la,
-                line=dict(color=FOCAL if focal else CONTEXT_LINE, width=3.5 if focal else 1.3),
-                opacity=1.0 if focal else 0.85,
+                x=s["year"], y=s["att8"], mode="lines+markers", name=la,
+                line=dict(color=tpal[la], width=3.8 if focal else 1.8),
+                marker=dict(size=8 if focal else 5),
                 hovertemplate="<b>"+la+"</b><br>%{x}: %{y:.1f}<extra></extra>"))
         figt.update_xaxes(title="Academic year")
         figt.update_yaxes(title="Average Attainment 8 score")
         show_chart(figt, "ks4_trend", "DfE KS4 performance, 2018/19–2024/25")
-        legend_hint("Hide peer boroughs from the legend to read Westminster's trend on its own.")
+        legend_hint("Hide boroughs from the legend to read Westminster's trend on its own.")
         source_line("Attainment 8 measures pupils' average achievement across eight GCSE subjects. "
                     "Source: DfE Key Stage 4 performance, Explore Education Statistics. See sidebar for link.")
 
@@ -1558,10 +1748,12 @@ with tab4:
         if "Range" in el.columns:
             er = el.dropna(subset=["Range"]).sort_values("Range", ascending=True).tail(25)
             chart_title("Where the ethnic-deprivation gap is widest (top 25 LSOAs)",
-                        "EGDI range = gap between the most- and least-deprived ethnic group in the LSOA · ward shown on hover")
+                        "EGDI range = gap between the most- and least-deprived ethnic group in the LSOA · top three highlighted · ward shown on hover")
             lbl = np.where(er["Ward"] != "—", er["LSOA_NAME"] + " · " + er["Ward"], er["LSOA_NAME"])
+            top3_cut = er["Range"].nlargest(3).min()          # highlight the three widest gaps only
+            bar_cols = np.where(er["Range"] >= top3_cut, FOCAL, CONTEXT_BAR)
             figr = go.Figure(go.Bar(
-                x=er["Range"], y=lbl, orientation="h", marker_color=FOCAL,
+                x=er["Range"], y=lbl, orientation="h", marker_color=bar_cols,
                 customdata=er["Ward"],
                 hovertemplate="<b>%{y}</b><br>EGDI range: %{x:.2f}<extra></extra>"))
             figr.update_xaxes(title="EGDI range (within-LSOA gap across ethnic groups)")
@@ -1646,7 +1838,10 @@ with tab4:
         g["pct"] = g["n"] / g.groupby("borough")["n"].transform("sum") * 100
         return g[["borough", "decile", "pct"]]
 
-    prof = _imd_decile_profile()
+    try:
+        prof = _imd_decile_profile()
+    except Exception:
+        prof = pd.DataFrame()
     if prof.empty:
         st.info("IMD file not found — the deprivation-profile radar needs "
                 "`File_1_IoD2025_Index_of_Multiple_Deprivation.xlsx`.")
@@ -1658,12 +1853,13 @@ with tab4:
                     "% of LSOAs in each national decile (1 = most deprived) · Westminster in strong colour")
         figr = go.Figure()
         theta = [f"Decile {d}" for d in deciles] + ["Decile 1"]
+        rpal = borough_palette(list(wide.index))
         for b in wide.index:
             if b == "Westminster":
                 continue
             r = wide.loc[b].tolist()
             figr.add_trace(go.Scatterpolar(r=r + [r[0]], theta=theta, name=b,
-                                           line=dict(color=CONTEXT_LINE, width=1.4), opacity=0.8))
+                                           line=dict(color=rpal[b], width=1.8), opacity=0.9))
         if "Westminster" in wide.index:
             r = wide.loc["Westminster"].tolist()
             figr.add_trace(go.Scatterpolar(r=r + [r[0]], theta=theta, name="Westminster",
