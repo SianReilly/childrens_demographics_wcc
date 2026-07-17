@@ -838,7 +838,7 @@ tab0, tab1, tab2, tab3, tab4 = st.tabs([
 # TAB 0 — OVERVIEW / LANDING
 # ══════════════════════════════════════════════════════════════════════════════
 with tab0:
-    st.subheader("What this dashboard shows — and which dataset to trust for what")
+    st.subheader("Which dataset to trust for what")
     st.markdown(
         "Westminster's child population is measured by several official sources, each built "
         "differently and each best for a particular question. This page explains what to use when, "
@@ -1688,6 +1688,6 @@ with tab4:
 
 # ── FOOTER ────────────────────────────────────────────────────────────────────
 st.divider()
-st.caption("Westminster Children's Demographics · Westminster always shown in strong colour, comparators "
+st.caption("WCC Children's Demographics · Westminster always shown in strong colour, comparators "
            "muted (Economist “grey-the-context” style) · every chart exports to PNG for slides · data "
            "sources linked in the sidebar.")
