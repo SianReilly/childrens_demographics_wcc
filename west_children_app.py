@@ -592,7 +592,7 @@ def load_rm012():
     fn = "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx"
     if not _exists(fn):
         # tolerant of alternative file names
-        for alt in ["RM012.xlsx", "RM012_ethnic_group_HRP_age.xlsx"]:
+        for alt in ["RM012.xlsx", "RM012_dependent_children_by_ethnic_group_of_HRP"]:
             if _exists(alt):
                 fn = alt
                 break
