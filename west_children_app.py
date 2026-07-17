@@ -789,7 +789,7 @@ with st.sidebar:
     st.markdown("[Census 2021 — ONS Nomis](https://www.nomisweb.co.uk/)")
 
 # ── HEADER + METRICS ──────────────────────────────────────────────────────────
-st.title("🏙️ Westminster Children's Demographics")
+st.title("🏙️ WCC Children's Demographics")
 st.markdown("Population, child poverty, attainment, ethnicity and deprivation — "
             "benchmarked against CIPFA statistical neighbours, with Westminster always in focus.")
 
