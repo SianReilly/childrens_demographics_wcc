@@ -846,7 +846,7 @@ with tab0:
 
     st.markdown("##### The datasets at a glance")
     st.markdown(f"""
-<div class="ds-card"><b>① Mid-Year Estimates (MYEs) — start here for ages.</b><br>
+<div class="ds-card"><b>① Mid-Year Estimates (MYEs) — start here.</b><br>
 ONS rebuilds the population every year from the Census, births, deaths and migration. They are the
 <b>most up-to-date</b> count of children by age (0–4, 5–9, 10–14, 15–19) and sex, available right down
 to LSOA level (mid-2022 → mid-2024) and back to 1991 at borough level. <b>Use MYEs as the default for
@@ -864,8 +864,8 @@ structure; otherwise prefer the MYEs.</div>
 <div class="ds-card"><b>③ Index of Multiple Deprivation (IMD 2025) + IDACI — the deprivation backbone.</b><br>
 The IMD is the standard <b>overall</b> measure of neighbourhood deprivation. Its child-specific
 supplementary index, <b>IDACI</b> (Income Deprivation Affecting Children), is the <b>first go-to for
-child poverty geography</b> — it measures the share of children in income-deprived families and, on the
-2025 after-housing-costs basis, exposes hidden child poverty in high-cost areas like Westminster.
+child poverty geography</b> — it measures the share of children in income-deprived families and, the
+IMD's 2025 update includes after-housing-costs, exposing hidden child poverty in high-cost areas like Westminster.
 <b>Prefer the IMD alongside IDACI.</b></div>
 
 <div class="ds-card"><b>④ Ethnic Group Deprivation Index (EGDI) — the ethnicity dimension of deprivation.</b><br>
