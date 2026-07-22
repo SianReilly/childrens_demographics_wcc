@@ -1,0 +1,474 @@
+time_period,time_identifier,geographic_level,country_code,country_name,region_name,region_code,old_la_code,la_name,new_la_code,phase_type_grouping,sex,age,full_time,part_time,headcount,fte
+201516,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9213,458,9671,9442
+201516,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,100,1,101,100.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,90,24,114,102
+201516,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,12117,8,12125,12121
+201516,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,9811,0,9811,9811
+201516,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,598,2,600,599
+201516,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,31929,493,32422,32175.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6526,73,6599,6562.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,49,0,49,49
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,122,0,122,122
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,254,138,392,323
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,10485,165,10650,10567.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,8764,0,8764,8764
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,408,0,408,408
+201516,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,26608,376,26984,26796
+201516,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,779,72,851,815
+201516,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,136,0,136,136
+201516,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,122,114,236,179
+201516,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,14733,533,15266,14999.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,8684,0,8684,8684
+201516,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,419,0,419,419
+201516,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,24873,719,25592,25232.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,13148,417,13565,13356.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,54,0,54,54
+201516,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,156,56,212,184
+201516,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,7253,69,7322,7287.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,4808,0,4808,4808
+201516,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,183,0,183,183
+201516,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,25602,542,26144,25873
+201516,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,10121,329,10450,10285.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,120,0,120,120
+201516,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,102,126,228,165
+201516,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,19008,1471,20479,19743.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,11546,0,11546,11546
+201516,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,769,1,770,769.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,41666,1927,43593,42629.5
+201516,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,8363,176,8539,8451
+201516,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,60,0,60,60
+201516,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,99,206,305,202
+201516,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,10890,312,11202,11046
+201516,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,11097,38,11135,11116
+201516,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,198,0,198,198
+201516,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,30707,732,31439,31073
+201617,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9437,361,9798,9617.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,104,0,104,104
+201617,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,93,30,123,108
+201617,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,12102,7,12109,12105.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,9979,0,9979,9979
+201617,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,655,3,658,656.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,32370,401,32771,32570.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6701,59,6760,6730.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,44,0,44,44
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,111,0,111,111
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,255,115,370,312.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,10494,166,10660,10577
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9198,0,9198,9198
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,445,0,445,445
+201617,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,27248,340,27588,27418
+201617,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,883,83,966,924.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,188,0,188,188
+201617,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,151,158,309,230
+201617,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,14952,614,15566,15259
+201617,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,8593,0,8593,8593
+201617,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,447,0,447,447
+201617,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,25214,855,26069,25641.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,12816,447,13263,13039.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,69,0,69,69
+201617,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,176,41,217,196.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,7260,88,7348,7304
+201617,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,5046,0,5046,5046
+201617,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,181,0,181,181
+201617,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,25548,576,26124,25836
+201617,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,10287,298,10585,10436
+201617,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,111,0,111,111
+201617,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,142,97,239,190.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,19484,1308,20792,20138
+201617,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,11680,0,11680,11680
+201617,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,768,0,768,768
+201617,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,42472,1703,44175,43323.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,8359,105,8464,8411.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,63,0,63,63
+201617,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,87,219,306,196.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,10679,279,10958,10818.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,11306,35,11341,11323.5
+201617,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,215,0,215,215
+201617,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,30709,638,31347,31028
+201718,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9436,372,9808,9622
+201718,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,134,0,134,134
+201718,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,55,52,107,81
+201718,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,11844,98,11942,11893
+201718,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,10035,3,10038,10036.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,588,1,589,588.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,32092,526,32618,32355
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6673,64,6737,6705
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,46,0,46,46
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,93,0,93,93
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,249,113,362,305.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,10432,99,10531,10481.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9337,10,9347,9342
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,479,0,479,479
+201718,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,27309,286,27595,27452
+201718,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,817,128,945,881
+201718,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,135,0,135,135
+201718,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,155,164,319,237
+201718,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,14348,1055,15403,14875.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,8628,0,8628,8628
+201718,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,460,0,460,460
+201718,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,24543,1347,25890,25216.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,11729,469,12198,11963.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,101,0,101,101
+201718,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,184,28,212,198
+201718,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,7347,38,7385,7366
+201718,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,5359,0,5359,5359
+201718,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,215,0,215,215
+201718,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,24935,535,25470,25202.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,10309,243,10552,10430.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,99,0,99,99
+201718,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,113,118,231,172
+201718,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,19694,1138,20832,20263
+201718,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,12034,0,12034,12034
+201718,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,789,2,791,790
+201718,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,43038,1501,44539,43788.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,8986,99,9085,9035.5
+201718,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,70,0,70,70
+201718,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,118,190,308,213
+201718,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,10417,182,10599,10508
+201718,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,11538,4,11542,11540
+201718,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,226,0,226,226
+201718,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,31355,475,31830,31592.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9575,278,9853,9714
+201819,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,143,0,143,143
+201819,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,68,65,133,100.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,11571,157,11728,11649.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,10217,0,10217,10217
+201819,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,698,2,700,699
+201819,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,32272,502,32774,32523
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6609,57,6666,6637.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,56,0,56,56
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,69,0,69,69
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,254,113,367,310.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,10412,95,10507,10459.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9367,11,9378,9372.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,489,0,489,489
+201819,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,27256,276,27532,27394
+201819,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,845,97,942,893.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,95,0,95,95
+201819,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,189,161,350,269.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,14113,1012,15125,14619
+201819,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,8551,0,8551,8551
+201819,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,488,0,488,488
+201819,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,24281,1270,25551,24916
+201819,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,11711,326,12037,11874
+201819,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,66,0,66,66
+201819,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,113,91,204,158.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,7208,97,7305,7256.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,5710,0,5710,5710
+201819,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,228,0,228,228
+201819,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,25036,514,25550,25293
+201819,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,10270,195,10465,10367.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,76,0,76,76
+201819,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,109,154,263,186
+201819,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,19589,1110,20699,20144
+201819,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,12594,0,12594,12594
+201819,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,821,3,824,822.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,43459,1462,44921,44190
+201819,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,9254,77,9331,9292.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,60,0,60,60
+201819,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,108,199,307,207.5
+201819,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,10011,174,10185,10098
+201819,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,11981,0,11981,11981
+201819,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,238,0,238,238
+201819,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,31652,450,32102,31877
+201920,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9299,383,9682,9490.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,189,0,189,189
+201920,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,78,53,131,104.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,11319,164,11483,11401
+201920,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,10225,0,10225,10225
+201920,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,660,1,661,660.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,31770,601,32371,32070.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6679,72,6751,6715
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,51,0,51,51
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,70,0,70,70
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,172,198,370,271
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,10112,167,10279,10195.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9628,11,9639,9633.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,512,0,512,512
+201920,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,27224,448,27672,27448
+201920,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,863,144,1007,935
+201920,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,94,0,94,94
+201920,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,205,138,343,274
+201920,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,14027,930,14957,14492
+201920,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,8673,0,8673,8673
+201920,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,507,0,507,507
+201920,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,24369,1212,25581,24975
+201920,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,11585,293,11878,11731.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,48,0,48,48
+201920,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,106,111,217,161.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,7171,43,7214,7192.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,5862,0,5862,5862
+201920,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,227,0,227,227
+201920,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,24999,447,25446,25222.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,10013,238,10251,10132
+201920,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,69,0,69,69
+201920,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,75,149,224,149.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,19371,1055,20426,19898.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,12961,0,12961,12961
+201920,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,831,11,842,836.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,43320,1453,44773,44046.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,9436,151,9587,9511.5
+201920,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,59,0,59,59
+201920,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,120,160,280,200
+201920,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,9424,202,9626,9525
+201920,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,12445,0,12445,12445
+201920,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,239,0,239,239
+201920,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,31723,513,32236,31979.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9293,223,9516,9404.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,163,0,163,163
+202021,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,78,36,114,96
+202021,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,10959,169,11128,11043.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,10360,0,10360,10360
+202021,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,402,0,402,402
+202021,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,31255,428,31683,31469
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6540,50,6590,6565
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,54,0,54,54
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,53,0,53,53
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,157,162,319,238
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,9762,166,9928,9845
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9849,18,9867,9858
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,545,0,545,545
+202021,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,26960,396,27356,27158
+202021,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,824,152,976,900
+202021,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,57,0,57,57
+202021,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,147,106,253,200
+202021,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,13587,886,14473,14030
+202021,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,8961,0,8961,8961
+202021,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,529,0,529,529
+202021,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,24105,1144,25249,24677
+202021,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,10967,183,11150,11058.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,30,0,30,30
+202021,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,86,114,200,143
+202021,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,6967,16,6983,6975
+202021,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,6040,0,6040,6040
+202021,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,222,0,222,222
+202021,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,24312,313,24625,24468.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,9905,176,10081,9993
+202021,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,52,0,52,52
+202021,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,68,142,210,139
+202021,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,18983,837,19820,19401.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,13219,0,13219,13219
+202021,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,874,3,877,875.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,43101,1158,44259,43680
+202021,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,9075,87,9162,9118.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,44,0,44,44
+202021,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,123,137,260,191.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,9011,85,9096,9053.5
+202021,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,12644,0,12644,12644
+202021,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,239,0,239,239
+202021,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,31136,309,31445,31290.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9113,223,9336,9224.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,141,0,141,141
+202122,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,62,66,128,95
+202122,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,10871,200,11071,10971
+202122,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,10541,0,10541,10541
+202122,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,404,1,405,404.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,31132,490,31622,31377
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6417,10,6427,6422
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,52,0,52,52
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,43,0,43,43
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,174,141,315,244.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,9470,160,9630,9550
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,10033,10,10043,10038
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,551,0,551,551
+202122,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,26740,321,27061,26900.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,740,121,861,800.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,79,0,79,79
+202122,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,175,127,302,238.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,13304,794,14098,13701
+202122,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,9160,0,9160,9160
+202122,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,553,0,553,553
+202122,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,24011,1042,25053,24532
+202122,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,10614,186,10800,10707
+202122,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,35,0,35,35
+202122,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,106,128,234,170
+202122,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,6981,24,7005,6993
+202122,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,6192,0,6192,6192
+202122,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,285,0,285,285
+202122,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,24213,338,24551,24382
+202122,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,9860,162,10022,9941
+202122,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,57,0,57,57
+202122,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,59,120,179,119
+202122,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,18513,767,19280,18896.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,13348,0,13348,13348
+202122,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,876,8,884,880
+202122,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,42713,1057,43770,43241.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,9402,15,9417,9409.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,47,0,47,47
+202122,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,162,97,259,210.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,8818,63,8881,8849.5
+202122,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,12765,6,12771,12768
+202122,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,240,0,240,240
+202122,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,31434,181,31615,31524.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9336,131,9467,9401.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,74,0,74,74
+202223,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,79,57,136,107.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,10476,186,10662,10569
+202223,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,10559,4,10563,10561
+202223,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,415,3,418,416.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,30939,381,31320,31129.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6543,3,6546,6544.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,53,0,53,53
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,62,0,62,62
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,155,178,333,244
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,9166,153,9319,9242.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,10028,16,10044,10036
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,564,0,564,564
+202223,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,26571,350,26921,26746
+202223,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,773,145,918,845.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,89,0,89,89
+202223,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,159,133,292,225.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,12922,723,13645,13283.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,9341,0,9341,9341
+202223,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,571,0,571,571
+202223,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,23855,1001,24856,24355.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,10784,197,10981,10882.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,47,0,47,47
+202223,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,98,103,201,149.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,6802,21,6823,6812.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,6221,0,6221,6221
+202223,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,301,1,302,301.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,24253,322,24575,24414
+202223,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,9899,138,10037,9968
+202223,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,61,0,61,61
+202223,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,48,118,166,107
+202223,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,18277,568,18845,18561
+202223,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,13294,0,13294,13294
+202223,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,889,0,889,889
+202223,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,42468,824,43292,42880
+202223,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,9636,3,9639,9637.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,55,0,55,55
+202223,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,174,94,268,221
+202223,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,8218,132,8350,8284
+202223,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,12720,9,12729,12724.5
+202223,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,246,0,246,246
+202223,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,31049,238,31287,31168
+202324,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,8851,521,9372,9111.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,61,0,61,61
+202324,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,71,52,123,97
+202324,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,10042,181,10223,10132.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,10289,1,10290,10289.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,434,1,435,434.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,29748,756,30504,30126
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6510,4,6514,6512
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,48,0,48,48
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,62,0,62,62
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,191,131,322,256.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,9135,125,9260,9197.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9980,0,9980,9980
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,561,0,561,561
+202324,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,26487,260,26747,26617
+202324,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,828,77,905,866.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,123,0,123,123
+202324,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,205,89,294,249.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,12751,530,13281,13016
+202324,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,9249,0,9249,9249
+202324,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,616,0,616,616
+202324,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,23772,696,24468,24120
+202324,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,10836,219,11055,10945.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,53,0,53,53
+202324,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,131,78,209,170
+202324,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,6588,23,6611,6599.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,6122,0,6122,6122
+202324,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,293,0,293,293
+202324,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,24023,320,24343,24183
+202324,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,9912,155,10067,9989.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,80,0,80,80
+202324,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,81,70,151,116
+202324,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,17723,634,18357,18040
+202324,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,13158,0,13158,13158
+202324,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,928,1,929,928.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,41882,860,42742,42312
+202324,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,9843,22,9865,9854
+202324,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,60,0,60,60
+202324,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,77,191,268,172.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,7819,95,7914,7866.5
+202324,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,12649,0,12649,12649
+202324,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,263,0,263,263
+202324,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,30711,308,31019,30865
+202425,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,9049,123,9172,9110.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,80,0,80,80
+202425,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,64,52,116,90
+202425,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,9805,192,9997,9901
+202425,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,9976,0,9976,9976
+202425,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,408,2,410,409
+202425,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,29382,369,29751,29566.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6277,15,6292,6284.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,52,0,52,52
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,57,0,57,57
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,169,137,306,237.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,8770,154,8924,8847
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9932,0,9932,9932
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,564,0,564,564
+202425,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,25821,306,26127,25974
+202425,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,794,81,875,834.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,115,0,115,115
+202425,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,184,96,280,232
+202425,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,12379,641,13020,12699.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,9085,0,9085,9085
+202425,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,632,0,632,632
+202425,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,23189,818,24007,23598
+202425,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,10600,188,10788,10694
+202425,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,43,0,43,43
+202425,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,115,89,204,159.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,6447,20,6467,6457
+202425,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,6097,0,6097,6097
+202425,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,341,0,341,341
+202425,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,23643,297,23940,23791.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,9837,190,10027,9932
+202425,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,83,0,83,83
+202425,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,63,56,119,91
+202425,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,17370,571,17941,17655.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,12852,0,12852,12852
+202425,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,901,4,905,903
+202425,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,41106,821,41927,41516.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,9273,19,9292,9282.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,61,0,61,61
+202425,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,90,175,265,177.5
+202425,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,7563,90,7653,7608
+202425,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,12572,0,12572,12572
+202425,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,312,0,312,312
+202425,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,29871,284,30155,30013
+202526,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Independent school,Total,Total,8585,149,8734,8659.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded AP school,Total,Total,68,0,68,68
+202526,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded nursery,Total,Total,67,38,105,86
+202526,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded primary,Total,Total,9661,148,9809,9735
+202526,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded secondary,Total,Total,9701,0,9701,9701
+202526,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,State-funded special school,Total,Total,388,0,388,388
+202526,Academic year,Local authority,E92000001,England,London,E12000007,202,Camden,E09000007,Total,Total,Total,28470,335,28805,28637.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Independent school,Total,Total,6210,13,6223,6216.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Non-maintained special school,Total,Total,50,0,50,50
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded AP school,Total,Total,52,0,52,52
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded nursery,Total,Total,164,111,275,219.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded primary,Total,Total,8748,120,8868,8808
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded secondary,Total,Total,9936,0,9936,9936
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,State-funded special school,Total,Total,576,0,576,576
+202526,Academic year,Local authority,E92000001,England,London,E12000007,205,Hammersmith and Fulham,E09000013,Total,Total,Total,25736,244,25980,25858
+202526,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Independent school,Total,Total,787,81,868,827.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded AP school,Total,Total,56,0,56,56
+202526,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded nursery,Total,Total,183,67,250,216.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded primary,Total,Total,11771,774,12545,12158
+202526,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded secondary,Total,Total,8918,0,8918,8918
+202526,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,State-funded special school,Total,Total,663,0,663,663
+202526,Academic year,Local authority,E92000001,England,London,E12000007,206,Islington,E09000019,Total,Total,Total,22378,922,23300,22839
+202526,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Independent school,Total,Total,10117,75,10192,10154.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded AP school,Total,Total,44,0,44,44
+202526,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded nursery,Total,Total,117,76,193,155
+202526,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded primary,Total,Total,6255,52,6307,6281
+202526,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded secondary,Total,Total,6174,0,6174,6174
+202526,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,State-funded special school,Total,Total,331,0,331,331
+202526,Academic year,Local authority,E92000001,England,London,E12000007,207,Kensington and Chelsea,E09000020,Total,Total,Total,23038,203,23241,23139.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Independent school,Total,Total,9201,173,9374,9287.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded AP school,Total,Total,71,0,71,71
+202526,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded nursery,Total,Total,76,71,147,111.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded primary,Total,Total,16935,574,17509,17222
+202526,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded secondary,Total,Total,12751,0,12751,12751
+202526,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,State-funded special school,Total,Total,894,0,894,894
+202526,Academic year,Local authority,E92000001,England,London,E12000007,212,Wandsworth,E09000032,Total,Total,Total,39928,818,40746,40337
+202526,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Independent school,Total,Total,8503,40,8543,8523
+202526,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded AP school,Total,Total,51,0,51,51
+202526,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded nursery,Total,Total,101,148,249,175
+202526,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded primary,Total,Total,7031,63,7094,7062.5
+202526,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded secondary,Total,Total,12415,0,12415,12415
+202526,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,State-funded special school,Total,Total,331,0,331,331
+202526,Academic year,Local authority,E92000001,England,London,E12000007,213,Westminster,E09000033,Total,Total,Total,28432,251,28683,28557.5
