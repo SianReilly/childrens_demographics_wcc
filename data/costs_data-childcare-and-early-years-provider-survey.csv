@@ -1,0 +1,129 @@
+time_period,time_identifier,geographic_level,country_code,country_name,region_code,region_name,old_la_code,new_la_code,la_name,child_age,mean_hourly_fee,median_hourly_fee
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,301,E09000002,Barking and Dagenham,2 years old,8.00532,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,302,E09000003,Barnet,2 years old,9.25658,9
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,303,E09000004,Bexley,2 years old,7.31992,7
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,304,E09000005,Brent,2 years old,9.06323,9
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,305,E09000006,Bromley,2 years old,8.54401,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,202,E09000007,Camden,2 years old,10.39759,10.01
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,306,E09000008,Croydon,2 years old,7.92941,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,307,E09000009,Ealing,2 years old,9.29941,8.67
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,308,E09000010,Enfield,2 years old,8.69639,9
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,203,E09000011,Greenwich,2 years old,9.63348,8.2
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,204,E09000012,Hackney,2 years old,8.80906,9
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,205,E09000013,Hammersmith and Fulham,2 years old,10.88788,10.95
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,309,E09000014,Haringey,2 years old,9.81762,9.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,310,E09000015,Harrow,2 years old,8.98889,9
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,311,E09000016,Havering,2 years old,7.35473,7
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,312,E09000017,Hillingdon,2 years old,8.17671,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,313,E09000018,Hounslow,2 years old,9.48228,8.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,206,E09000019,Islington,2 years old,9.38516,9.44
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,207,E09000020,Kensington and Chelsea,2 years old,12.88395,11
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,314,E09000021,Kingston upon Thames,2 years old,8.07315,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,208,E09000022,Lambeth,2 years old,9.33864,10
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,209,E09000023,Lewisham,2 years old,8.32222,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,315,E09000024,Merton,2 years old,8.64865,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,316,E09000025,Newham,2 years old,8.66915,8.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,317,E09000026,Redbridge,2 years old,7.99506,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,318,E09000027,Richmond upon Thames,2 years old,10.80559,10
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,210,E09000028,Southwark,2 years old,9.163,8.25
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,319,E09000029,Sutton,2 years old,7.4114,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,211,E09000030,Tower Hamlets,2 years old,8.85132,9.4
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,320,E09000031,Waltham Forest,2 years old,8.24396,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,212,E09000032,Wandsworth,2 years old,11.10157,10.09
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,213,E09000033,Westminster,2 years old,12.05543,11.25
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,301,E09000002,Barking and Dagenham,3 and 4 years old,8.88789,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,302,E09000003,Barnet,3 and 4 years old,8.70531,8.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,303,E09000004,Bexley,3 and 4 years old,7.11649,6.82
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,304,E09000005,Brent,3 and 4 years old,8.42153,8.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,305,E09000006,Bromley,3 and 4 years old,8.05452,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,202,E09000007,Camden,3 and 4 years old,10.07292,9.92
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,306,E09000008,Croydon,3 and 4 years old,7.96709,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,307,E09000009,Ealing,3 and 4 years old,7.79771,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,308,E09000010,Enfield,3 and 4 years old,8.228,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,203,E09000011,Greenwich,3 and 4 years old,9.67116,7.72
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,204,E09000012,Hackney,3 and 4 years old,8.54868,9
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,205,E09000013,Hammersmith and Fulham,3 and 4 years old,10.93767,10
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,309,E09000014,Haringey,3 and 4 years old,8.8197,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,310,E09000015,Harrow,3 and 4 years old,8.36138,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,311,E09000016,Havering,3 and 4 years old,7.54856,7
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,312,E09000017,Hillingdon,3 and 4 years old,7.86201,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,313,E09000018,Hounslow,3 and 4 years old,9.04079,8.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,206,E09000019,Islington,3 and 4 years old,8.68531,8.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,207,E09000020,Kensington and Chelsea,3 and 4 years old,12.2287,9.82
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,314,E09000021,Kingston upon Thames,3 and 4 years old,8.30436,8.4
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,208,E09000022,Lambeth,3 and 4 years old,9.42471,10
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,209,E09000023,Lewisham,3 and 4 years old,7.70759,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,315,E09000024,Merton,3 and 4 years old,9.02137,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,316,E09000025,Newham,3 and 4 years old,8.19034,8.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,317,E09000026,Redbridge,3 and 4 years old,7.64109,7.4
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,318,E09000027,Richmond upon Thames,3 and 4 years old,10.10335,10
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,210,E09000028,Southwark,3 and 4 years old,8.23864,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,319,E09000029,Sutton,3 and 4 years old,7.45189,7.5
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,211,E09000030,Tower Hamlets,3 and 4 years old,9.09578,9.4
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,320,E09000031,Waltham Forest,3 and 4 years old,8.07082,8
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,212,E09000032,Wandsworth,3 and 4 years old,9.85496,9.87
+2025,Calendar year,Local authority,E92000001,England,E12000007,London,213,E09000033,Westminster,3 and 4 years old,12.29517,11
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,301,E09000002,Barking and Dagenham,2 years old,6.987719937,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,302,E09000003,Barnet,2 years old,8.982866503,8.6
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,303,E09000004,Bexley,2 years old,6.431373977,6.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,304,E09000005,Brent,2 years old,8.651878819,7.91
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,305,E09000006,Bromley,2 years old,7.449814832,7.3
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,202,E09000007,Camden,2 years old,8.954660661,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,306,E09000008,Croydon,2 years old,7.626390071,7.25
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,307,E09000009,Ealing,2 years old,8.869044896,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,308,E09000010,Enfield,2 years old,7.70863258,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,203,E09000011,Greenwich,2 years old,7.075997381,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,204,E09000012,Hackney,2 years old,9.291143658,9.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,205,E09000013,Hammersmith and Fulham,2 years old,9.786885931,9.75
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,309,E09000014,Haringey,2 years old,10.11244906,10
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,310,E09000015,Harrow,2 years old,8.260736428,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,311,E09000016,Havering,2 years old,6.58456958,6.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,312,E09000017,Hillingdon,2 years old,7.900100419,7.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,313,E09000018,Hounslow,2 years old,8.407160669,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,206,E09000019,Islington,2 years old,8.258136003,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,207,E09000020,Kensington and Chelsea,2 years old,13.01889988,10.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,314,E09000021,Kingston upon Thames,2 years old,8.66863369,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,208,E09000022,Lambeth,2 years old,9.943865787,10
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,209,E09000023,Lewisham,2 years old,7.960532319,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,315,E09000024,Merton,2 years old,8.154749977,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,316,E09000025,Newham,2 years old,8.585048776,8.4
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,317,E09000026,Redbridge,2 years old,7.346587012,6.56
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,318,E09000027,Richmond upon Thames,2 years old,9.336440726,9.6
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,210,E09000028,Southwark,2 years old,8.386171613,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,319,E09000029,Sutton,2 years old,7.218791905,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,211,E09000030,Tower Hamlets,2 years old,*,*
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,320,E09000031,Waltham Forest,2 years old,7.650603982,7.86
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,212,E09000032,Wandsworth,2 years old,10.60524244,10
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,213,E09000033,Westminster,2 years old,11.3046845,10.39
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,301,E09000002,Barking and Dagenham,3 and 4 years old,6.499170236,6.33
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,302,E09000003,Barnet,3 and 4 years old,8.571191864,8.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,303,E09000004,Bexley,3 and 4 years old,6.493768569,6.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,304,E09000005,Brent,3 and 4 years old,9.907956161,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,305,E09000006,Bromley,3 and 4 years old,7.569588025,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,202,E09000007,Camden,3 and 4 years old,8.709954385,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,306,E09000008,Croydon,3 and 4 years old,7.443014528,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,307,E09000009,Ealing,3 and 4 years old,7.842916319,7.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,308,E09000010,Enfield,3 and 4 years old,7.371052705,7.14
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,203,E09000011,Greenwich,3 and 4 years old,6.644868017,6.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,204,E09000012,Hackney,3 and 4 years old,7.713004354,7.14
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,205,E09000013,Hammersmith and Fulham,3 and 4 years old,10.2440194,9.75
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,309,E09000014,Haringey,3 and 4 years old,9.572934341,10
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,310,E09000015,Harrow,3 and 4 years old,7.497862179,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,311,E09000016,Havering,3 and 4 years old,6.167099288,6
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,312,E09000017,Hillingdon,3 and 4 years old,7.39536484,7.33
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,313,E09000018,Hounslow,3 and 4 years old,8.078039394,7.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,206,E09000019,Islington,3 and 4 years old,7.262097372,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,207,E09000020,Kensington and Chelsea,3 and 4 years old,11.15406067,10
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,314,E09000021,Kingston upon Thames,3 and 4 years old,8.801753085,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,208,E09000022,Lambeth,3 and 4 years old,9.014033176,9
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,209,E09000023,Lewisham,3 and 4 years old,7.761670884,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,315,E09000024,Merton,3 and 4 years old,7.747868243,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,316,E09000025,Newham,3 and 4 years old,8.097389257,8
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,317,E09000026,Redbridge,3 and 4 years old,7.902333945,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,318,E09000027,Richmond upon Thames,3 and 4 years old,9.672048131,9.5
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,210,E09000028,Southwark,3 and 4 years old,7.652614905,7.56
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,319,E09000029,Sutton,3 and 4 years old,7.035480372,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,211,E09000030,Tower Hamlets,3 and 4 years old,*,*
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,320,E09000031,Waltham Forest,3 and 4 years old,7.560263727,7
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,212,E09000032,Wandsworth,3 and 4 years old,9.63330617,9
+2024,Calendar year,Local authority,E92000001,England,E12000007,London,213,E09000033,Westminster,3 and 4 years old,10.6314448,10.06
