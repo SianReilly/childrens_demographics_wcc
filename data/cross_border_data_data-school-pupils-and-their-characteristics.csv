@@ -1,0 +1,91 @@
+time_period,time_identifier,geographic_level,country_code,country_name,region_code,region_name,old_la_code,la_name,new_la_code,phase-type_grouping,boarder,ncyear,resident_headcount,school_in_la,school_outside_la,Camden,Hammersmith_and_Fulham,Islington,Kensington_and_Chelsea,Wandsworth,Westminster
+201920,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Primary,Total,Total,10531,9120,1411,9120,2,300,20,0,653
+201920,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Secondary,Total,Total,7065,5102,1963,5102,34,560,60,4,900
+201920,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Special School,Total,Total,265,228,37,228,5,16,0,1,5
+201920,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Primary,Total,Total,9021,8184,837,0,8184,1,595,34,33
+201920,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Secondary,Total,Total,5781,4111,1670,4,4111,2,814,114,94
+201920,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Special School,Total,Total,274,249,25,3,249,0,0,1,12
+201920,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Primary,Total,Total,12756,11232,1524,576,1,11232,3,0,22
+201920,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Secondary,Total,Total,7938,5607,2331,1140,43,5607,42,0,115
+201920,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Special School,Total,Total,368,327,41,8,1,327,0,1,0
+201920,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Primary,Total,Total,4946,4578,368,3,172,1,4578,5,147
+201920,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Secondary,Total,Total,3115,2200,915,2,578,0,2200,16,197
+201920,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Special School,Total,Total,102,0,102,1,67,0,0,3,29
+201920,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Primary,Total,Total,18573,16845,1728,3,69,0,335,16845,70
+201920,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Secondary,Total,Total,9748,7016,2732,2,521,1,224,7016,85
+201920,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Special School,Total,Total,469,426,43,0,5,0,0,426,0
+201920,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Primary,Total,Total,7661,6735,926,66,16,7,611,1,6735
+201920,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Secondary,Total,Total,6142,4957,1185,205,205,15,488,25,4957
+201920,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Special School,Total,Total,257,141,116,4,97,2,0,4,141
+202021,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Primary,Total,Total,10141,8815,1326,8815,0,301,14,1,575
+202021,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Secondary,Total,Total,7069,5113,1956,5113,30,529,60,0,961
+202021,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Special School,Total,Total,271,226,45,226,6,20,0,1,4
+202021,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Primary,Total,Total,8722,7947,775,0,7947,1,555,43,20
+202021,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Secondary,Total,Total,5900,4238,1662,7,4238,2,859,105,90
+202021,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Special School,Total,Total,293,263,30,2,263,1,0,6,12
+202021,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Primary,Total,Total,12546,10987,1559,612,2,10987,3,0,30
+202021,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Secondary,Total,Total,8119,5701,2418,1174,37,5701,45,3,129
+202021,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Special School,Total,Total,367,327,40,7,1,327,0,0,0
+202021,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Primary,Total,Total,4806,4473,333,1,174,0,4473,3,118
+202021,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Secondary,Total,Total,3042,2173,869,8,525,3,2173,16,200
+202021,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Special School,Total,Total,118,0,118,1,78,0,0,2,32
+202021,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Primary,Total,Total,18221,16489,1732,2,81,2,327,16489,66
+202021,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Secondary,Total,Total,9993,7174,2819,2,564,0,255,7174,94
+202021,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Special School,Total,Total,503,452,51,0,4,0,0,452,0
+202021,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Primary,Total,Total,7477,6490,987,67,17,6,654,1,6490
+202021,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Secondary,Total,Total,6072,4863,1209,196,184,15,533,29,4863
+202021,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Special School,Total,Total,258,144,114,5,95,2,0,3,144
+202122,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Primary,Total,Total,10001,8706,1295,8706,2,292,10,1,553
+202122,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Secondary,Total,Total,7088,5125,1963,5125,24,481,75,0,1018
+202122,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Special School,Total,Total,267,222,45,222,6,15,1,1,4
+202122,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Primary,Total,Total,8503,7694,809,1,7694,2,574,35,23
+202122,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Secondary,Total,Total,5897,4275,1622,5,4275,1,863,92,70
+202122,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Special School,Total,Total,305,273,32,2,273,1,2,5,9
+202122,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Primary,Total,Total,12379,10745,1634,615,2,10745,8,0,27
+202122,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Secondary,Total,Total,8308,5827,2481,1180,35,5827,46,3,130
+202122,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Special School,Total,Total,377,345,32,8,2,345,0,0,0
+202122,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Primary,Total,Total,4789,4490,299,1,154,0,4490,4,108
+202122,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Secondary,Total,Total,3141,2277,864,7,531,3,2277,14,183
+202122,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Special School,Total,Total,124,20,104,1,63,0,20,2,31
+202122,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Primary,Total,Total,17642,15938,1704,1,76,1,306,15938,74
+202122,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Secondary,Total,Total,10319,7425,2894,1,598,1,259,7425,86
+202122,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Special School,Total,Total,521,470,51,0,5,0,0,470,0
+202122,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Primary,Total,Total,7372,6377,995,75,15,6,681,1,6377
+202122,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Secondary,Total,Total,6114,4914,1200,181,182,12,550,26,4914
+202122,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Special School,Total,Total,261,136,125,6,82,2,22,2,136
+202223,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Primary,Total,Total,9623,8342,1281,8342,6,282,7,0,540
+202223,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Secondary,Total,Total,7133,5138,1995,5138,25,456,70,0,1070
+202223,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Special School,Total,Total,273,237,36,237,5,9,1,1,3
+202223,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Primary,Total,Total,8392,7507,885,1,7507,1,602,41,27
+202223,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Secondary,Total,Total,5867,4302,1565,5,4302,2,825,91,69
+202223,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Special School,Total,Total,320,290,30,1,290,0,1,5,10
+202223,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Primary,Total,Total,12060,10461,1599,596,0,10461,10,1,25
+202223,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Secondary,Total,Total,8396,5821,2575,1211,31,5821,48,2,124
+202223,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Special School,Total,Total,402,368,34,8,0,368,0,1,0
+202223,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Primary,Total,Total,4582,4303,279,5,129,0,4303,5,108
+202223,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Secondary,Total,Total,3171,2305,866,6,538,1,2305,15,187
+202223,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Special School,Total,Total,132,27,105,2,62,1,27,2,32
+202223,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Primary,Total,Total,17212,15565,1647,1,74,0,312,15565,60
+202223,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Secondary,Total,Total,10409,7465,2944,2,641,2,254,7465,90
+202223,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Special School,Total,Total,524,466,58,0,4,0,1,466,0
+202223,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Primary,Total,Total,6968,5961,1007,80,14,7,684,4,5961
+202223,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Secondary,Total,Total,5947,4757,1190,180,172,7,573,22,4757
+202223,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Special School,Total,Total,267,143,124,4,75,1,34,1,143
+202324,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Primary,Total,Total,9268,8035,1233,8035,2,276,7,0,514
+202324,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Secondary,Total,Total,6900,4926,1974,4926,21,434,57,1,1103
+202324,Academic year,Local authority,E92000001,England,E12000007,London,202,Camden,E09000007,Special School,Total,Total,273,229,44,229,4,14,1,1,3
+202324,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Primary,Total,Total,8282,7403,879,0,7403,0,580,36,29
+202324,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Secondary,Total,Total,5704,4169,1535,3,4169,0,833,76,68
+202324,Academic year,Local authority,E92000001,England,E12000007,London,205,Hammersmith and Fulham,E09000013,Special School,Total,Total,317,283,34,1,283,0,1,5,12
+202324,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Primary,Total,Total,11775,10257,1518,538,0,10257,5,0,23
+202324,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Secondary,Total,Total,8433,5789,2644,1246,26,5789,53,2,124
+202324,Academic year,Local authority,E92000001,England,E12000007,London,206,Islington,E09000019,Special School,Total,Total,420,390,30,8,0,390,0,0,0
+202324,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Primary,Total,Total,4374,4124,250,4,111,0,4124,2,108
+202324,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Secondary,Total,Total,2985,2228,757,1,467,0,2228,11,178
+202324,Academic year,Local authority,E92000001,England,E12000007,London,207,Kensington and Chelsea,E09000020,Special School,Total,Total,133,34,99,2,52,1,34,2,37
+202324,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Primary,Total,Total,16906,15179,1727,1,71,0,327,15179,54
+202324,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Secondary,Total,Total,10384,7374,3010,1,698,1,280,7374,101
+202324,Academic year,Local authority,E92000001,England,E12000007,London,212,Wandsworth,E09000032,Special School,Total,Total,549,488,61,0,5,0,1,488,0
+202324,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Primary,Total,Total,6736,5688,1048,72,17,8,706,1,5688
+202324,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Secondary,Total,Total,5876,4671,1205,160,182,7,612,20,4671
+202324,Academic year,Local authority,E92000001,England,E12000007,London,213,Westminster,E09000033,Special School,Total,Total,274,147,127,3,70,1,42,1,147
