@@ -124,13 +124,40 @@ BOROUGH_COLOURS = {
 # spare muted hues if a comparator outside the CIPFA six ever appears
 _EXTRA_MUTED = ["#B08E6A", "#7FB0A0", "#A97BA5", "#6E9BB3", "#C0906B", "#8AA98A"]
 
+# Benchmark averages — deliberately neutral greys, drawn dashed, so they read as
+# "context lines" rather than as another borough.
+LONDON, ENGLAND = "London", "England"
+AVERAGE_COLOURS = {LONDON: "#7A8390", ENGLAND: "#4A5058"}
+COMPARATORS = list(NEIGHBOURS) + [LONDON, ENGLAND]
+
+def _norm_la(name):
+    """Normalise local-authority names to the app's house spelling ('&' not 'and')."""
+    s = str(name).strip()
+    s = s.replace("Kensington and Chelsea", "Kensington & Chelsea")
+    s = s.replace("Hammersmith and Fulham", "Hammersmith & Fulham")
+    return s
+
+def is_average(name):
+    return str(name) in AVERAGE_COLOURS
+
+def line_style(name):
+    """Westminster solid+thick, boroughs solid, London/England dashed."""
+    if name == "Westminster":
+        return dict(width=3.8)
+    if is_average(name):
+        return dict(width=2.2, dash="dash")
+    return dict(width=1.8)
+
 def borough_palette(categories, focal="Westminster"):
-    """Distinct but muted colour per borough (consistent everywhere); Westminster strong."""
+    """Distinct but muted colour per borough (consistent everywhere); Westminster strong.
+    London/England benchmarks get neutral greys."""
     out, ei = {}, 0
     for c in categories:
-        cc = str(c)
+        cc = _norm_la(c)
         if cc == focal:
             out[c] = FOCAL
+        elif cc in AVERAGE_COLOURS:
+            out[c] = AVERAGE_COLOURS[cc]
         elif cc in BOROUGH_COLOURS:
             out[c] = BOROUGH_COLOURS[cc]
         else:
@@ -592,7 +619,7 @@ def _read_stacked_census(fn, block_key, age_map, cat_clean=None, max_hdr_scan=8)
     n, ncol = raw.shape
     col0 = raw.iloc[:, 0].fillna("").astype(str).str.strip().str.lower()
     bk = block_key.lower()
-    starts = [i for i in range(n) if bk in col0.iloc[i]]
+    starts = [i for i in range(n) if col0.iloc[i].startswith(bk)]
     if not starts:
         return None
     starts_ext = starts + [n]
@@ -870,6 +897,437 @@ def load_borough_geojson():
     return _inject_id(gj, id_prop)
 
 # ══════════════════════════════════════════════════════════════════════════════
+# NEW DATASETS — children & schools, population change, childcare costs
+# Sources: DfE Explore Education Statistics (pupils, SEN, childcare provider survey),
+# ONS internal-migration detailed estimates, ONS/Nomis births.
+# Every loader degrades to an empty frame so a missing file only hides its own charts.
+# ══════════════════════════════════════════════════════════════════════════════
+def _academic_year_label(tp):
+    """201516 -> '2015/16'; 2025 -> '2025'."""
+    s = str(int(tp))
+    return f"{s[:4]}/{s[4:]}" if len(s) == 6 else s
+
+def _year_start(tp):
+    """201516 -> 2015 (sortable numeric start year)."""
+    s = str(int(tp))
+    return int(s[:4])
+
+def _fetch_csv(url, timeout=25):
+    """Fetch a CSV over HTTP with a hard timeout. Returns a DataFrame or None.
+    Used for the Nomis API links; the app never blocks if the API is unreachable."""
+    try:
+        import urllib.request
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            return pd.read_csv(io.BytesIO(r.read()))
+    except Exception:
+        return None
+
+@st.cache_data(show_spinner=False)
+def load_pupils():
+    """DfE 'School pupils and their characteristics' — headcount/FTE by LA and phase.
+    File covers Westminster + its five neighbours only (no London/England rows);
+    London and England totals come from the SEN file instead (see load_sen)."""
+    fn = "data-school-pupils-and-their-characteristics.csv"
+    COLS = ["year", "year_label", "la", "phase", "headcount", "fte", "full_time", "part_time"]
+    if not _exists(fn):
+        return pd.DataFrame(columns=COLS)
+    df = pd.read_csv(_dp(fn), low_memory=False)
+    df = df[df["geographic_level"].astype(str).str.lower() == "local authority"].copy()
+    out = pd.DataFrame({
+        "year": df["time_period"].map(_year_start),
+        "year_label": df["time_period"].map(_academic_year_label),
+        "la": df["la_name"].map(_norm_la),
+        "phase": df["phase_type_grouping"].astype(str).str.strip(),
+        "headcount": _num(df["headcount"]),
+        "fte": _num(df["fte"]),
+        "full_time": _num(df["full_time"]),
+        "part_time": _num(df["part_time"]),
+    })
+    return out.dropna(subset=["headcount"]).reset_index(drop=True)
+
+@st.cache_data(show_spinner=False)
+def load_sen():
+    """DfE 'Special educational needs in England'. IMPORTANT: within each phase,
+    sen_provision == 'Total' is the TOTAL pupil headcount (the denominator), while
+    'Education, health and care plan' and 'SEN support / SEN without an EHC plan'
+    are the SEN counts. The file carries National (England), Regional (London) and
+    all 33 London LAs, so it supplies the London/England comparators for pupil
+    numbers as well as the SEN analysis."""
+    fn = "SEN_data-special-educational-needs-in-england.csv"
+    COLS = ["year", "year_label", "geo", "phase", "provision", "count"]
+    if not _exists(fn):
+        return pd.DataFrame(columns=COLS)
+    df = pd.read_csv(_dp(fn), low_memory=False)
+    lvl = df["geographic_level"].astype(str).str.lower()
+    geo = np.where(lvl == "national", ENGLAND,
+          np.where(lvl == "regional", df["region_name"].astype(str), df["la_name"].astype(str)))
+    out = pd.DataFrame({
+        "year": df["time_period"].map(_year_start),
+        "year_label": df["time_period"].map(_academic_year_label),
+        "geo": pd.Series(geo).map(_norm_la),
+        "phase": df["phase_type_grouping"].astype(str).str.strip(),
+        "provision": df["sen_provision"].astype(str).str.strip(),
+        "count": _num(df["pupil_count"]),
+    })
+    out = out[out["geo"].astype(str).str.lower() != "nan"]
+    return out.dropna(subset=["count"]).reset_index(drop=True)
+
+@st.cache_data(show_spinner=False)
+def load_cross_border():
+    """DfE cross-border movement: where an LA's resident pupils actually go to school.
+    resident_headcount = pupils living in the LA; school_in_la / school_outside_la split
+    that by where they are educated; the trailing borough columns are the destination
+    breakdown (how many of this LA's residents attend school in each named borough)."""
+    fn = "cross_border_data_data-school-pupils-and-their-characteristics.csv"
+    COLS = ["year", "year_label", "la", "phase", "resident", "in_la", "out_la"]
+    if not _exists(fn):
+        return pd.DataFrame(columns=COLS), pd.DataFrame(columns=["year", "la", "destination", "pupils"])
+    df = pd.read_csv(_dp(fn), low_memory=False)
+    phase_col = "phase-type_grouping" if "phase-type_grouping" in df.columns else "phase_type_grouping"
+    base = pd.DataFrame({
+        "year": df["time_period"].map(_year_start),
+        "year_label": df["time_period"].map(_academic_year_label),
+        "la": df["la_name"].map(_norm_la),
+        "phase": df[phase_col].astype(str).str.strip(),
+        "resident": _num(df["resident_headcount"]),
+        "in_la": _num(df["school_in_la"]),
+        "out_la": _num(df["school_outside_la"]),
+    })
+    dest_cols = [c for c in df.columns if c in
+                 ["Camden", "Hammersmith_and_Fulham", "Islington", "Kensington_and_Chelsea",
+                  "Wandsworth", "Westminster"]]
+    flows = []
+    for c in dest_cols:
+        flows.append(pd.DataFrame({
+            "year": df["time_period"].map(_year_start),
+            "la": df["la_name"].map(_norm_la),
+            "phase": df[phase_col].astype(str).str.strip(),
+            "destination": _norm_la(c.replace("_", " ")),
+            "pupils": _num(df[c]),
+        }))
+    fl = pd.concat(flows, ignore_index=True) if flows else pd.DataFrame(columns=["year", "la", "phase", "destination", "pupils"])
+    return base.dropna(subset=["resident"]).reset_index(drop=True), fl.dropna(subset=["pupils"]).reset_index(drop=True)
+
+@st.cache_data(show_spinner=False)
+def load_childcare_costs():
+    """DfE Childcare and early years provider survey — hourly fees by London LA,
+    for 2-year-olds and 3-and-4-year-olds."""
+    fn = "costs_data-childcare-and-early-years-provider-survey.csv"
+    COLS = ["year", "la", "la_code", "child_age", "mean_fee", "median_fee"]
+    if not _exists(fn):
+        return pd.DataFrame(columns=COLS)
+    df = pd.read_csv(_dp(fn), low_memory=False)
+    out = pd.DataFrame({
+        "year": _num(df["time_period"]).astype("Int64"),
+        "la": df["la_name"].map(_norm_la),
+        "la_code": df["new_la_code"].astype(str).str.strip(),
+        "child_age": df["child_age"].astype(str).str.strip(),
+        "mean_fee": _num(df["mean_hourly_fee"]),
+        "median_fee": _num(df["median_hourly_fee"]),
+    })
+    return out.dropna(subset=["mean_fee", "median_fee"], how="all").reset_index(drop=True)
+
+@st.cache_data(show_spinner=False)
+def load_indep_calc():
+    """Westminster's own independent-school estimate: LA resident headcount (ONS)
+    minus maintained-school resident headcount (cross-border movement)."""
+    fn = "Independent_schools_calculations.xlsx"
+    COLS = ["year", "year_label", "la", "phase", "mtd_resident", "mtd_in_la",
+            "mtd_out_la", "la_resident", "indep_estimate"]
+    if not _exists(fn):
+        return pd.DataFrame(columns=COLS)
+    raw = pd.read_excel(_dp(fn), header=None)
+    hdr = None
+    for r in range(min(10, len(raw))):
+        if raw.iloc[r].astype(str).str.contains("Year", case=False, na=False).any():
+            hdr = r; break
+    if hdr is None:
+        return pd.DataFrame(columns=COLS)
+    df = pd.read_excel(_dp(fn), header=hdr)
+    df = df.loc[:, ~df.columns.astype(str).str.startswith("Unnamed")]
+    cols = list(df.columns)
+    def pick(*keys):
+        for c in cols:
+            lc = str(c).lower()
+            if all(k in lc for k in keys):
+                return c
+        return None
+    c_year, c_la, c_phase = pick("year"), pick("la"), pick("phase")
+    c_res = pick("mtd", "resident") or pick("resident", "headcoun")
+    c_in, c_out = pick("in", "la"), pick("outside")
+    c_lares = pick("la", "resident", "headcoun")
+    c_ind = pick("independent")
+    if not (c_year and c_la and c_phase):
+        return pd.DataFrame(columns=COLS)
+    out = pd.DataFrame({
+        "year": df[c_year].map(lambda v: _year_start(v) if pd.notna(v) and str(v)[:4].isdigit() else np.nan),
+        "year_label": df[c_year].map(lambda v: _academic_year_label(v) if pd.notna(v) and str(v)[:4].isdigit() else ""),
+        "la": df[c_la].map(_norm_la),
+        "phase": df[c_phase].astype(str).str.strip(),
+        "mtd_resident": _num(df[c_res]) if c_res else np.nan,
+        "mtd_in_la": _num(df[c_in]) if c_in else np.nan,
+        "mtd_out_la": _num(df[c_out]) if c_out else np.nan,
+        "la_resident": _num(df[c_lares]) if c_lares else np.nan,
+        "indep_estimate": _num(df[c_ind]) if c_ind else np.nan,
+    })
+    return out.dropna(subset=["year"]).reset_index(drop=True)
+
+@st.cache_data(show_spinner=False)
+def load_internal_migration():
+    """Net internal (domestic) migration by LA and age band, 2024.
+    Prefers the small pre-aggregated CSV; falls back to aggregating ONS's full
+    origin–destination workbook (large and slow, so the CSV is strongly preferred)."""
+    COLS = ["area_code", "inflow", "outflow", "net", "age_band", "year"]
+    small = "internal_migration_children_2024.csv"
+    if _exists(small):
+        df = pd.read_csv(_dp(small))
+        for c in ["inflow", "outflow", "net"]:
+            if c in df.columns:
+                df[c] = _num(df[c])
+        return df
+    big = "detailedestimates2024on2023las.xlsx"
+    if not _exists(big):
+        return pd.DataFrame(columns=COLS)
+    raw = pd.read_excel(_dp(big), sheet_name="IM2024 on 2023 LAs")
+    bands = {"0-4": range(0, 5), "5-9": range(5, 10), "10-14": range(10, 15),
+             "15-19": range(15, 20), "0-15": range(0, 16), "All ages": None}
+    recs = []
+    for band, rng in bands.items():
+        cols = ([f"Age_{a}" for a in rng] if rng is not None
+                else [c for c in raw.columns if str(c).startswith("Age_")])
+        cols = [c for c in cols if c in raw.columns]
+        if not cols:
+            continue
+        v = raw[cols].sum(axis=1)
+        tmp = pd.DataFrame({"outla": raw["outla"], "inla": raw["inla"], "v": v})
+        m = pd.concat([tmp.groupby("inla")["v"].sum().rename("inflow"),
+                       tmp.groupby("outla")["v"].sum().rename("outflow")], axis=1).fillna(0.0)
+        m["net"] = m["inflow"] - m["outflow"]; m["age_band"] = band; m["year"] = 2024
+        m.index.name = "area_code"
+        recs.append(m.reset_index())
+    if not recs:
+        return pd.DataFrame(columns=COLS)
+    agg = pd.concat(recs, ignore_index=True)
+    return agg[agg["area_code"].astype(str).str.match(r"E0[69]")].reset_index(drop=True)
+
+# Nomis API endpoints from the data-sources note (used only if no local CSV exists)
+NOMIS_BIRTHS_LA = ("https://www.nomisweb.co.uk/api/v01/dataset/NM_205_1.data.csv?"
+                   "geography=1774190698,1774190704,1774190710,1774190711,1774190723,1774190724"
+                   "&age_of_mother=101,103...109&measures=20100")
+NOMIS_POP_SYOA = ("https://www.nomisweb.co.uk/api/v01/dataset/NM_2002_1.data.csv?"
+                  "geography=1774190698,1774190704,1774190710,1774190711,1774190723,1774190724"
+                  "&gender=0&c_age=101...117&measures=20100")
+
+@st.cache_data(show_spinner=False, ttl=86400)
+def load_pop_syoa():
+    """Resident population by SINGLE year of age, Westminster + neighbours (Nomis NM_2002_1).
+    Used to build the school-phase cohorts described in the method note: Primary = ages 4–10
+    (reception is age 4 turning 5; year 6 is age 10 turning 11) and Secondary = ages 11–16
+    (all pupils turn 16 by the end of year 11)."""
+    COLS = ["year", "la", "age", "population"]
+    df = None
+    for cand in ["population_single_year_of_age.csv", "NM_2002_1.data.csv", "pop_syoa.csv"]:
+        if _exists(cand):
+            df = pd.read_csv(_dp(cand), low_memory=False)
+            break
+    if df is None:
+        df = _fetch_csv(NOMIS_POP_SYOA)
+    if df is None or df.empty:
+        return pd.DataFrame(columns=COLS)
+    cols = {str(c).upper(): c for c in df.columns}
+    def find(*keys):
+        for up, orig in cols.items():
+            if all(k in up for k in keys):
+                return orig
+        return None
+    c_geo = find("GEOGRAPHY", "NAME") or find("GEOGRAPHY")
+    c_date = find("DATE", "NAME") or find("DATE")
+    c_age = find("C_AGE", "NAME") or find("AGE", "NAME") or find("C_AGE")
+    c_val = find("OBS_VALUE") or find("VALUE")
+    if not (c_geo and c_date and c_age and c_val):
+        return pd.DataFrame(columns=COLS)
+    out = pd.DataFrame({
+        "year": _num(df[c_date].astype(str).str.extract(r"(\d{4})")[0]),
+        "la": df[c_geo].map(_norm_la),
+        "age": _num(df[c_age].astype(str).str.extract(r"(\d+)")[0]),
+        "population": _num(df[c_val]),
+    })
+    return out.dropna(subset=["year", "age", "population"]).reset_index(drop=True)
+
+SCHOOL_COHORTS = {"Primary cohort (ages 4–10)": (4, 10),
+                  "Secondary cohort (ages 11–16)": (11, 16),
+                  "Year 6→7 transition (ages 10–12)": (10, 12),
+                  "Year 11→12 transition (ages 15–17)": (15, 17)}
+
+# Age ranges behind each school phase, per the council's method note:
+# reception is age 4 turning 5 and year 6 is age 10 turning 11; every secondary
+# pupil turns 16 by the end of year 11.
+PHASE_AGES = {"Primary": (4, 10), "Secondary": (11, 16)}
+
+@st.cache_data(show_spinner=False)
+def load_mye_syoa_wcc():
+    """Westminster resident population by SINGLE year of age, from the small-area MYE
+    workbook (which holds F0..F90 / M0..M90 columns). Covers mid-2022 to mid-2024 and
+    Westminster only — used as a fallback for the independent-school calculation when
+    the Nomis single-year-of-age extract (all six boroughs) has not been supplied."""
+    fn = "Small_Area_Output_Area_Mid_Year_Estimated.xlsx"
+    COLS = ["year", "la", "age", "population"]
+    if not _exists(fn):
+        return pd.DataFrame(columns=COLS)
+    sheets = {"Mid-2022 LSOA 2021": 2022, "Mid-2023 LSOA 2021": 2023, "Mid-2024 LSOA 2021": 2024}
+    recs = []
+    for sheet, yr in sheets.items():
+        try:
+            d = pd.read_excel(_dp(fn), sheet_name=sheet, header=3)
+        except Exception:
+            continue
+        if "LAD 2023 Name" not in d.columns:
+            continue
+        d = d[d["LAD 2023 Name"] == "Westminster"]
+        for a in range(0, 21):
+            f, m = f"F{a}", f"M{a}"
+            if f in d.columns and m in d.columns:
+                recs.append((yr, "Westminster", a, float(d[f].sum() + d[m].sum())))
+    return pd.DataFrame(recs, columns=COLS)
+
+def cohort_population(la, lo, hi, df_syoa, df_wcc):
+    """Resident population aged lo–hi by MYE year for one local authority.
+    Prefers the Nomis single-year-of-age extract (all boroughs); falls back to the
+    Westminster-only small-area workbook. Returns year → population."""
+    if df_syoa is not None and not df_syoa.empty:
+        d = df_syoa[(df_syoa["la"] == la) & (df_syoa["age"] >= lo) & (df_syoa["age"] <= hi)]
+        if not d.empty:
+            g = d.groupby("year", as_index=False)["population"].sum()
+            return dict(zip(g["year"].astype(int), g["population"])), "Nomis single year of age"
+    if df_wcc is not None and not df_wcc.empty and la == "Westminster":
+        d = df_wcc[(df_wcc["age"] >= lo) & (df_wcc["age"] <= hi)]
+        if not d.empty:
+            g = d.groupby("year", as_index=False)["population"].sum()
+            return dict(zip(g["year"].astype(int), g["population"])), "ONS small-area MYE (Westminster only)"
+    return {}, None
+
+def compute_independent_estimate(df_xb, df_syoa, df_wcc):
+    """Independent-school estimate, calculated rather than read from a spreadsheet:
+
+        independent = LA resident headcount (ONS MYE, phase age range)
+                      − maintained-school resident headcount (DfE cross-border)
+        % independent = independent / LA resident headcount
+
+    An academic year is matched to the mid-year estimate at its END (2023/24 → mid-2024),
+    which is the mapping that reproduces the council's own reference table."""
+    COLS = ["year", "year_label", "la", "phase", "mye_year", "la_resident",
+            "mtd_resident", "indep_estimate", "pct_independent", "source"]
+    if df_xb is None or df_xb.empty:
+        return pd.DataFrame(columns=COLS)
+    out = []
+    for la in sorted(df_xb["la"].unique()):
+        for phase, (lo, hi) in PHASE_AGES.items():
+            pops, src = cohort_population(la, lo, hi, df_syoa, df_wcc)
+            if not pops:
+                continue
+            sub = df_xb[(df_xb["la"] == la) & (df_xb["phase"].str.lower() == phase.lower())]
+            for _, r in sub.iterrows():
+                mye_year = int(r["year"]) + 1          # academic 2023/24 → mid-2024
+                pop = pops.get(mye_year)
+                if pop is None or not pop or pd.isna(r["resident"]):
+                    continue
+                ind = pop - float(r["resident"])
+                out.append((int(r["year"]), r["year_label"], la, phase, mye_year, pop,
+                            float(r["resident"]), ind, ind / pop * 100, src))
+    return pd.DataFrame(out, columns=COLS)
+
+@st.cache_data(show_spinner=False, ttl=86400)
+def load_births_la():
+    """Live births by LA and age of mother. Reads a local CSV from data/ if present,
+    otherwise calls the Nomis API. Returns tidy: year, la, age_of_mother, births."""
+    COLS = ["year", "la", "age_of_mother", "births"]
+    df = None
+    for cand in ["births_by_age_of_mother.csv", "NM_205_1.data.csv", "births_la.csv"]:
+        if _exists(cand):
+            df = pd.read_csv(_dp(cand), low_memory=False)
+            break
+    if df is None:
+        df = _fetch_csv(NOMIS_BIRTHS_LA)
+    if df is None or df.empty:
+        return pd.DataFrame(columns=COLS)
+    cols = {str(c).upper(): c for c in df.columns}
+    def find(*keys):
+        for up, orig in cols.items():
+            if all(k in up for k in keys):
+                return orig
+        return None
+    c_geo = find("GEOGRAPHY", "NAME") or find("GEOGRAPHY")
+    c_date = find("DATE", "NAME") or find("DATE")
+    c_age = find("AGE_OF_MOTHER", "NAME") or find("AGE_OF_MOTHER")
+    c_val = find("OBS_VALUE") or find("VALUE")
+    if not (c_geo and c_date and c_val):
+        return pd.DataFrame(columns=COLS)
+    out = pd.DataFrame({
+        "year": _num(df[c_date].astype(str).str.extract(r"(\d{4})")[0]),
+        "la": df[c_geo].map(_norm_la),
+        "age_of_mother": df[c_age].astype(str).str.strip() if c_age else "All ages",
+        "births": _num(df[c_val]),
+    })
+    return out.dropna(subset=["year", "births"]).reset_index(drop=True)
+
+@st.cache_data(show_spinner=False, ttl=86400)
+def load_births_lsoa():
+    """Live births by Westminster LSOA over time (Nomis NM_206_1 or a local CSV).
+    Returns tidy: year, LSOA_CODE, LSOA_NAME, births."""
+    COLS = ["year", "LSOA_CODE", "LSOA_NAME", "births"]
+    df = None
+    for cand in ["births_by_lsoa.csv", "NM_206_1.data.csv", "births_lsoa.csv"]:
+        if _exists(cand):
+            df = pd.read_csv(_dp(cand), low_memory=False)
+            break
+    if df is None or df.empty:
+        return pd.DataFrame(columns=COLS)
+    cols = {str(c).upper(): c for c in df.columns}
+    def find(*keys):
+        for up, orig in cols.items():
+            if all(k in up for k in keys):
+                return orig
+        return None
+    c_name = find("GEOGRAPHY", "NAME") or find("GEOGRAPHY")
+    c_code = find("GEOGRAPHY", "CODE")
+    c_date = find("DATE", "NAME") or find("DATE")
+    c_val = find("OBS_VALUE") or find("VALUE")
+    if not (c_name and c_date and c_val):
+        return pd.DataFrame(columns=COLS)
+    codes = (df[c_code].astype(str).str.extract(r"(E\d{8,})")[0] if c_code
+             else _lsoa_code(df[c_name]))
+    out = pd.DataFrame({
+        "year": _num(df[c_date].astype(str).str.extract(r"(\d{4})")[0]),
+        "LSOA_CODE": codes,
+        "LSOA_NAME": _lsoa_name(df[c_name]),
+        "births": _num(df[c_val]),
+    })
+    return out.dropna(subset=["year", "births", "LSOA_CODE"]).reset_index(drop=True)
+
+# ── derived metrics shared by the schools charts ──────────────────────────────
+def sen_totals(df_sen, phase):
+    """Total pupil headcount by geography × year for a phase (or all phases)."""
+    if df_sen.empty:
+        return pd.DataFrame(columns=["year", "year_label", "geo", "count"])
+    d = df_sen[df_sen["provision"] == "Total"]
+    if phase != "All phases":
+        d = d[d["phase"] == phase]
+    return d.groupby(["year", "year_label", "geo"], as_index=False)["count"].sum()
+
+def index_to_baseline(d, value_col="count", base_year=None, mode="pct_change"):
+    """% change (or index=100) against each geography's own baseline year."""
+    if d.empty:
+        return d
+    out = d.copy()
+    base_year = base_year if base_year is not None else out["year"].min()
+    base = out[out["year"] == base_year].set_index("geo")[value_col]
+    out["_base"] = out["geo"].map(base)
+    out = out[out["_base"].notna() & (out["_base"] != 0)]
+    out["value"] = ((out[value_col] / out["_base"]) - 1) * 100 if mode == "pct_change" \
+        else (out[value_col] / out["_base"]) * 100
+    return out.drop(columns=["_base"])
+
+# ══════════════════════════════════════════════════════════════════════════════
 # LOAD EVERYTHING  — every loader is isolated so one missing/corrupt file can
 # never crash the whole dashboard; it just disables the sections that need it.
 # ══════════════════════════════════════════════════════════════════════════════
@@ -925,6 +1383,20 @@ with st.spinner("Loading datasets…"):
     df_egdi_lsoa = _safe_load(load_egdi_lsoa, pd.DataFrame(), "EGDI.xlsx")
     lsoa_gj      = _safe_load(load_lsoa_geojson,    None, "ONS_LSOA_2021 (1).json")
     borough_gj   = _safe_load(load_borough_geojson, None, "Borough_London_LL84.json")
+    # ── new datasets: children & schools, population change, childcare costs
+    df_pupils    = _safe_load(load_pupils, pd.DataFrame(), "data-school-pupils-and-their-characteristics.csv")
+    df_sen       = _safe_load(load_sen,    pd.DataFrame(), "SEN_data-special-educational-needs-in-england.csv")
+    _xb          = _safe_load(load_cross_border, (pd.DataFrame(), pd.DataFrame()),
+                              "cross_border_data_data-school-pupils-and-their-characteristics.csv")
+    df_xborder, df_xflows = _xb if isinstance(_xb, tuple) else (pd.DataFrame(), pd.DataFrame())
+    df_ccosts    = _safe_load(load_childcare_costs, pd.DataFrame(), "costs_data-childcare-and-early-years-provider-survey.csv")
+    df_indep     = _safe_load(load_indep_calc, pd.DataFrame(), "Independent_schools_calculations.xlsx")
+    df_migr      = _safe_load(load_internal_migration, pd.DataFrame(), "internal_migration_children_2024.csv")
+    df_births    = _safe_load(load_births_la, pd.DataFrame())
+    df_births_lsoa = _safe_load(load_births_lsoa, pd.DataFrame())
+    df_syoa      = _safe_load(load_pop_syoa, pd.DataFrame())
+    df_wcc_syoa  = _safe_load(load_mye_syoa_wcc, pd.DataFrame(), "Small_Area_Output_Area_Mid_Year_Estimated.xlsx")
+    df_indep_calc = compute_independent_estimate(df_xborder, df_syoa, df_wcc_syoa)
 
 def add_ward(df, code_col="LSOA_CODE"):
     """Attach the LSOA's (dominant) ward as a 'Ward' column + a labelled name."""
@@ -997,12 +1469,15 @@ c4.metric("LSOAs in worst 10% — overall (IMD 2025)",
 st.divider()
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab0, tab1, tab2, tab3, tab4 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "🏠 Overview",
     "📍 Child Poverty",
     "🗺️ Population & Demographics",
     "📚 KS4 Attainment",
     "⚖️ Deprivation (IMD · IDACI · EGDI)",
+    "🎒 Children & Schools",
+    "🧸 Childcare Costs",
+    "📉 Births, Migration & Decline",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1044,6 +1519,18 @@ IMD and IDACI tell you <i>where</i> deprivation sits; they cannot tell you wheth
 <b>unevenly across ethnic groups</b> within the same neighbourhood. The EGDI adds exactly that lens.
 Reading it alongside IDACI and IMD turns "this area is deprived" into "and deprivation here is borne
 disproportionately by particular ethnic groups" — essential for targeting support equitably.</div>
+
+<div class="ds-card"><b>⑤ DfE schools data (pupils, SEN, cross-border) — the school-age reality.</b><br>
+Where the MYEs count <i>resident</i> children, the DfE data counts <b>pupils on rolls</b> — and the two
+diverge sharply in Westminster because so many children are educated privately or outside the borough.
+The SEN publication is doubly useful: alongside SEN counts it reports the <b>total headcount</b> for
+every phase nationally, regionally and for all 33 London boroughs, which is what lets us benchmark
+Westminster against the <b>London and England averages</b>.</div>
+
+<div class="ds-card"><b>⑥ Births, internal migration and childcare costs — the drivers.</b><br>
+Births set the size of each future school cohort; <b>internal migration</b> shows families leaving
+(and students arriving); <b>childcare costs</b> are one of the pressures behind that movement. Read
+together they explain <i>why</i> the child population is falling, rather than just showing that it is.</div>
 """, unsafe_allow_html=True)
 
     st.info("**In one line:** use the **Mid-Year Estimates** for the current age picture, the "
@@ -1881,6 +2368,852 @@ with tab4:
         source_line("Profiles use the proportion (%) of each borough's LSOAs in each national IMD decile, "
                     "so size differences between boroughs don't distort the comparison. Source: MHCLG "
                     "Indices of Deprivation 2025.")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 5 — CHILDREN & SCHOOLS
+# Pupil numbers, the shift to independent schools, cross-border movement and SEN.
+# Comparators: Westminster · 5 CIPFA neighbours · London · England.
+# ══════════════════════════════════════════════════════════════════════════════
+PHASES_MAIN = ["State-funded primary", "State-funded secondary", "State-funded nursery",
+               "State-funded special school", "Independent school", "All phases"]
+
+with tab5:
+    st.subheader("Children & schools — a shrinking school-age population")
+    st.markdown(
+        "**Datasets:** DfE *School pupils and their characteristics*, DfE *Special educational "
+        "needs in England*, and DfE *cross-border movement*. Pupil totals for **London** and "
+        "**England** are taken from the SEN publication, which reports the total headcount for "
+        "every phase nationally, regionally and for all 33 London boroughs — so Westminster can "
+        "be read against its five CIPFA neighbours **and** the London and England averages.")
+
+    if df_sen.empty and df_pupils.empty:
+        st.info("No schools data found. Add `SEN_data-special-educational-needs-in-england.csv` "
+                "and `data-school-pupils-and-their-characteristics.csv` to the `data` folder.")
+    else:
+        # ── headline metrics ──────────────────────────────────────────────────
+        if not df_sen.empty:
+            prim = sen_totals(df_sen, "State-funded primary")
+            sec = sen_totals(df_sen, "State-funded secondary")
+            yrs = sorted(prim["year"].unique())
+            y0, y1 = yrs[0], yrs[-1]
+            def _chg(d, geo):
+                a = d[(d["geo"] == geo) & (d["year"] == y0)]["count"].sum()
+                b = d[(d["geo"] == geo) & (d["year"] == y1)]["count"].sum()
+                return (b / a - 1) * 100 if a else np.nan, b
+            pw, pw_now = _chg(prim, "Westminster")
+            sw, sw_now = _chg(sec, "Westminster")
+            pl, _ = _chg(prim, LONDON)
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric(f"State-funded primary pupils ({_academic_year_label(str(y1)+str(y1+1)[2:])})",
+                      f"{int(pw_now):,}" if pd.notna(pw_now) else "—",
+                      delta=f"{pw:+.1f}% since {y0}/{str(y0+1)[2:]}" if pd.notna(pw) else None,
+                      help="Westminster resident-funded primary headcount and its change since the baseline year.")
+            m2.metric(f"State-funded secondary pupils",
+                      f"{int(sw_now):,}" if pd.notna(sw_now) else "—",
+                      delta=f"{sw:+.1f}% since {y0}/{str(y0+1)[2:]}" if pd.notna(sw) else None)
+            m3.metric("Primary change — London", f"{pl:+.1f}%" if pd.notna(pl) else "—",
+                      help="London-wide primary change over the same period, for context.")
+            allt = sen_totals(df_sen, "All phases")
+            ind = sen_totals(df_sen, "Independent school")
+            iw = ind[(ind["geo"] == "Westminster") & (ind["year"] == y1)]["count"].sum()
+            aw = allt[(allt["geo"] == "Westminster") & (allt["year"] == y1)]["count"].sum()
+            m4.metric("Pupils in independent schools", f"{(iw/aw*100):.1f}%" if aw else "—",
+                      help="Westminster share of all pupils attending independent schools — "
+                           "roughly three times the London average.")
+
+        st.divider()
+        # ── 1 · % change vs baseline (PowerPoint slides 3 & 4) ────────────────
+        st.markdown("### 1 · Change in pupil numbers against a baseline year")
+        st.markdown(
+            "This is the core measure in the child-population-decline analysis: each area's pupil "
+            "headcount indexed to its own baseline, so areas of very different size can be compared "
+            "on the same axis. Westminster's decline is far steeper than London's or England's.")
+        if df_sen.empty:
+            st.info("SEN/pupil totals file not found — needed for this chart.")
+        else:
+            c1, c2, c3 = st.columns(3)
+            phase_sel = c1.selectbox("School phase", PHASES_MAIN, index=0, key="sch_phase")
+            years_all = sorted(sen_totals(df_sen, phase_sel)["year"].unique())
+            base_sel = c2.selectbox("Baseline year", years_all, index=0, key="sch_base",
+                                    format_func=lambda y: f"{y}/{str(y+1)[2:]}")
+            mode_sel = c3.selectbox("Measure", ["% change vs baseline", "Index (baseline = 100)",
+                                                "Headcount"], key="sch_mode")
+            geo_sel = st.multiselect("Areas to compare", COMPARATORS, default=COMPARATORS,
+                                     key="sch_geos")
+            d = sen_totals(df_sen, phase_sel)
+            d = d[d["geo"].isin(geo_sel)]
+            if d.empty:
+                st.info("No data for that combination of phase and areas.")
+            else:
+                if mode_sel == "Headcount":
+                    plot = d.rename(columns={"count": "value"})
+                    ylab, fmt = "Pupil headcount", ":,"
+                else:
+                    plot = index_to_baseline(d, "count", base_sel,
+                                             "pct_change" if mode_sel.startswith("%") else "index")
+                    ylab = ("% change since baseline" if mode_sel.startswith("%")
+                            else "Index (baseline = 100)")
+                    fmt = ":.1f"
+                chart_title(
+                    f"{phase_sel} — {mode_sel.lower()}"
+                    + (f" (baseline {base_sel}/{str(base_sel+1)[2:]})" if mode_sel != "Headcount" else ""),
+                    "Westminster in strong colour · boroughs in their own muted colours · "
+                    "London and England dashed")
+                pal = borough_palette(sorted(plot["geo"].unique()))
+                figp = go.Figure()
+                for g in sorted(plot["geo"].unique(), key=lambda x: (x in AVERAGE_COLOURS, x)):
+                    s = plot[plot["geo"] == g].sort_values("year")
+                    figp.add_trace(go.Scatter(
+                        x=s["year_label"], y=s["value"], mode="lines+markers", name=g,
+                        line=dict(color=pal[g], **line_style(g)),
+                        marker=dict(size=8 if g == "Westminster" else 5),
+                        hovertemplate="<b>" + g + "</b><br>%{x}: %{y" + fmt + "}<extra></extra>"))
+                if mode_sel != "Headcount":
+                    figp.add_hline(y=0 if mode_sel.startswith("%") else 100,
+                                   line_dash="dot", line_color="#BBBBBB")
+                figp.update_xaxes(title="Academic year")
+                figp.update_yaxes(title=ylab)
+                show_chart(figp, "sch_change", "DfE pupil / SEN statistics")
+                legend_hint("Click a borough in the legend to hide it, or double-click to isolate it.")
+
+        st.divider()
+        # ── 2 · Independent schools (slides 5-7) ─────────────────────────────
+        st.markdown("### 2 · The independent-school share")
+        st.markdown(
+            "Westminster has one of the highest independent-school shares in the country. This "
+            "matters for planning: a falling state-school roll is driven both by fewer children "
+            "overall and by where those children are educated.")
+        if df_sen.empty:
+            st.info("Pupil totals file not found — needed for the independent-school share.")
+        else:
+            alltot = sen_totals(df_sen, "All phases").rename(columns={"count": "total"})
+            indtot = sen_totals(df_sen, "Independent school").rename(columns={"count": "indep"})
+            shr = alltot.merge(indtot, on=["year", "year_label", "geo"], how="left")
+            shr["indep"] = shr["indep"].fillna(0)
+            shr["share"] = np.where(shr["total"] > 0, shr["indep"] / shr["total"] * 100, np.nan)
+
+            ca, cb = st.columns([3, 2])
+            with ca:
+                sel2 = st.multiselect("Areas", COMPARATORS, default=COMPARATORS, key="ind_geos")
+                sh = shr[shr["geo"].isin(sel2)].dropna(subset=["share"])
+                if not sh.empty:
+                    chart_title("Share of pupils attending independent schools",
+                                "% of all pupils in the area · Westminster in strong colour")
+                    pal2 = borough_palette(sorted(sh["geo"].unique()))
+                    figi = go.Figure()
+                    for g in sorted(sh["geo"].unique(), key=lambda x: (x in AVERAGE_COLOURS, x)):
+                        s = sh[sh["geo"] == g].sort_values("year")
+                        figi.add_trace(go.Scatter(
+                            x=s["year_label"], y=s["share"], mode="lines+markers", name=g,
+                            line=dict(color=pal2[g], **line_style(g)),
+                            marker=dict(size=8 if g == "Westminster" else 5),
+                            hovertemplate="<b>" + g + "</b><br>%{x}: %{y:.1f}%<extra></extra>"))
+                    figi.update_xaxes(title="Academic year")
+                    figi.update_yaxes(title="% of pupils in independent schools", rangemode="tozero")
+                    show_chart(figi, "indep_share_ts", "DfE pupil / SEN statistics")
+            with cb:
+                yr_i = st.selectbox("Year (ranking)", sorted(shr["year"].unique(), reverse=True),
+                                    key="ind_year", format_func=lambda y: f"{y}/{str(y+1)[2:]}")
+                rank = shr[(shr["year"] == yr_i) & (~shr["geo"].isin([ENGLAND, LONDON]))]
+                rank = rank.dropna(subset=["share"]).sort_values("share")
+                if not rank.empty:
+                    chart_title(f"All London boroughs ranked, {yr_i}/{str(yr_i+1)[2:]}",
+                                "% of pupils in independent schools · Westminster highlighted")
+                    cols_r = np.where(rank["geo"] == "Westminster", FOCAL, CONTEXT_BAR)
+                    figr = go.Figure(go.Bar(
+                        x=rank["share"], y=rank["geo"], orientation="h", marker_color=cols_r,
+                        hovertemplate="<b>%{y}</b><br>%{x:.1f}% independent<extra></extra>"))
+                    figr.update_xaxes(title="% of pupils")
+                    figr.update_yaxes(title="")
+                    figr.update_layout(height=680)
+                    show_chart(figr, "indep_rank", "DfE pupil / SEN statistics")
+
+            # borough choropleth of independent share
+            if borough_gj is not None:
+                id_by_name = {}
+                for ft in borough_gj["features"]:
+                    p = ft["properties"]
+                    nm = (p.get("name") or p.get("BoroughNa") or p.get("NAME") or
+                          next((v for k, v in p.items() if isinstance(v, str) and "E09" not in v), ""))
+                    id_by_name[_norm_la(nm)] = ft["id"]
+                mm = shr[(shr["year"] == yr_i) & (~shr["geo"].isin([ENGLAND, LONDON]))].copy()
+                mm["gid"] = mm["geo"].map(id_by_name)
+                mm = mm.dropna(subset=["gid", "share"])
+                if not mm.empty:
+                    chart_title(f"Independent-school share across London, {yr_i}/{str(yr_i+1)[2:]}",
+                                "Darker = a higher share of pupils educated privately")
+                    figm = choropleth(borough_gj, mm["gid"], mm["share"], mm["geo"],
+                                      "% independent", [[0, WCC["light_blue"]], [1, FOCAL]],
+                                      fmt=":.1f", zoom=9, center={"lat": 51.50, "lon": -0.12},
+                                      height=520)
+                    show_chart(figm, "indep_map", "DfE pupil / SEN statistics")
+
+        st.divider()
+        # ── 3 · Cross-border movement ────────────────────────────────────────
+        st.markdown("### 3 · Cross-border movement — where resident pupils go to school")
+        st.markdown(
+            "Resident pupils are not the same as pupils on local school rolls. This table splits "
+            "each borough's **resident** maintained-school pupils into those educated **inside** the "
+            "borough and those travelling **outside** it — the basis for Westminster's own "
+            "independent-school estimate (LA resident headcount minus maintained-school residents).")
+        if df_xborder.empty:
+            st.info("Cross-border file not found — add "
+                    "`cross_border_data_data-school-pupils-and-their-characteristics.csv` to `data`.")
+        else:
+            cx1, cx2 = st.columns(2)
+            ph_x = cx1.selectbox("Phase", sorted(df_xborder["phase"].unique()), key="xb_phase")
+            yr_x = cx2.selectbox("Academic year", sorted(df_xborder["year"].unique(), reverse=True),
+                                 key="xb_year", format_func=lambda y: f"{y}/{str(y+1)[2:]}")
+            xb = df_xborder[(df_xborder["phase"] == ph_x) & (df_xborder["year"] == yr_x)].copy()
+            if not xb.empty:
+                xb["pct_out"] = np.where(xb["resident"] > 0, xb["out_la"] / xb["resident"] * 100, np.nan)
+                xb = xb.sort_values("pct_out")
+                chart_title(f"Share of resident {ph_x.lower()} pupils educated outside their borough",
+                            f"{yr_x}/{str(yr_x+1)[2:]} · maintained schools only · Westminster highlighted")
+                colx = np.where(xb["la"] == "Westminster", FOCAL, CONTEXT_BAR)
+                figx = go.Figure(go.Bar(
+                    x=xb["pct_out"], y=xb["la"], orientation="h", marker_color=colx,
+                    text=[f"{v:.0f}%" for v in xb["pct_out"]], textposition="outside",
+                    customdata=np.stack([xb["resident"], xb["in_la"], xb["out_la"]], axis=-1),
+                    hovertemplate="<b>%{y}</b><br>Resident pupils: %{customdata[0]:,.0f}"
+                                  "<br>Schooled in borough: %{customdata[1]:,.0f}"
+                                  "<br>Schooled outside: %{customdata[2]:,.0f}"
+                                  "<br>= %{x:.1f}% travelling out<extra></extra>"))
+                figx.update_xaxes(title="% of resident pupils schooled outside the borough",
+                                  range=[0, float(np.nanmax(xb["pct_out"])) * 1.25])
+                figx.update_yaxes(title="")
+                figx.update_layout(height=330)
+                show_chart(figx, "xborder_bar", "DfE cross-border movement")
+
+            st.markdown("#### Independent-school estimate — calculated from source data")
+            st.markdown(
+                "This is **computed in the app**, not read from a spreadsheet:\n\n"
+                "> independent = **LA resident headcount** (ONS mid-year estimates, ages 4–10 for "
+                "primary and 11–16 for secondary) − **maintained-school resident headcount** "
+                "(DfE cross-border movement)\n\n"
+                "Each academic year is matched to the mid-year estimate at its **end** "
+                "(2023/24 → mid-2024). `Independent_schools_calculations.xlsx` is used purely as a "
+                "**reference to check the calculation against**, in the reconciliation table below.")
+            if df_indep_calc.empty:
+                st.info(
+                    "The calculation needs both the cross-border file and a single-year-of-age "
+                    "population source. Add `population_single_year_of_age.csv` (Nomis NM_2002_1) to "
+                    "`data/` to compute this for all six boroughs; without it the app falls back to "
+                    "the Westminster-only small-area MYE workbook.")
+            else:
+                src_used = ", ".join(sorted(set(df_indep_calc["source"].dropna())))
+                st.caption(f"Population source in use: **{src_used}**")
+                ic2 = df_indep_calc[df_indep_calc["phase"].str.lower() == ph_x.lower()]
+                if not ic2.empty:
+                    cc_a, cc_b = st.columns(2)
+                    with cc_a:
+                        chart_title(f"Estimated independent-school pupils — {ph_x.lower()}",
+                                    "Resident children minus those in maintained schools")
+                        pal_i = borough_palette(sorted(ic2["la"].unique()))
+                        fig_i1 = go.Figure()
+                        for g in sorted(ic2["la"].unique()):
+                            sg = ic2[ic2["la"] == g].sort_values("year")
+                            fig_i1.add_trace(go.Scatter(
+                                x=sg["year_label"], y=sg["indep_estimate"], mode="lines+markers",
+                                name=g, line=dict(color=pal_i[g], **line_style(g)),
+                                hovertemplate="<b>" + g + "</b><br>%{x}: %{y:,.0f} pupils<extra></extra>"))
+                        fig_i1.update_xaxes(title="Academic year")
+                        fig_i1.update_yaxes(title="Estimated independent-school pupils")
+                        show_chart(fig_i1, "indep_calc_n", "Calculated: ONS MYE − DfE cross-border")
+                    with cc_b:
+                        chart_title(f"Estimated % in independent schools — {ph_x.lower()}",
+                                    "Share of the borough's resident children of that age")
+                        fig_i2 = go.Figure()
+                        for g in sorted(ic2["la"].unique()):
+                            sg = ic2[ic2["la"] == g].sort_values("year")
+                            fig_i2.add_trace(go.Scatter(
+                                x=sg["year_label"], y=sg["pct_independent"], mode="lines+markers",
+                                name=g, line=dict(color=pal_i[g], **line_style(g)),
+                                hovertemplate="<b>" + g + "</b><br>%{x}: %{y:.1f}%<extra></extra>"))
+                        fig_i2.update_xaxes(title="Academic year")
+                        fig_i2.update_yaxes(title="% of resident children")
+                        show_chart(fig_i2, "indep_calc_pct", "Calculated: ONS MYE − DfE cross-border")
+
+                # ── reconciliation against the reference spreadsheet
+                if not df_indep.empty:
+                    st.markdown("**Reconciliation against `Independent_schools_calculations.xlsx`**")
+                    ref = df_indep[["year", "la", "phase", "la_resident", "indep_estimate"]].rename(
+                        columns={"la_resident": "ref_resident", "indep_estimate": "ref_indep"})
+                    rec = df_indep_calc.merge(ref, on=["year", "la", "phase"], how="inner")
+                    if rec.empty:
+                        st.info("No overlapping rows between the calculation and the reference table.")
+                    else:
+                        rec["ref_pct"] = np.where(rec["ref_resident"] > 0,
+                                                  rec["ref_indep"] / rec["ref_resident"] * 100, np.nan)
+                        rec["diff_pp"] = rec["pct_independent"] - rec["ref_pct"]
+                        show = rec[["year_label", "la", "phase", "la_resident", "ref_resident",
+                                    "pct_independent", "ref_pct", "diff_pp"]].copy()
+                        show.columns = ["Academic year", "LA", "Phase", "MYE resident (computed)",
+                                        "Resident (reference)", "% independent (computed)",
+                                        "% independent (reference)", "Difference (pp)"]
+                        st.dataframe(
+                            show.style.format({
+                                "MYE resident (computed)": "{:,.0f}", "Resident (reference)": "{:,.0f}",
+                                "% independent (computed)": "{:.1f}%", "% independent (reference)": "{:.1f}%",
+                                "Difference (pp)": "{:+.1f}"}),
+                            use_container_width=True, hide_index=True)
+                        worst = rec["diff_pp"].abs().max()
+                        flagged = rec[rec["diff_pp"].abs() > 1.0]
+                        if worst <= 1.0:
+                            st.success(
+                                f"✅ **Calculation validated.** Every overlapping row matches the "
+                                f"reference table to within {worst:.1f} percentage points — small "
+                                "differences are expected because the reference used the LA-level MYE "
+                                "series while the app uses the LSOA-rebased small-area estimates.")
+                        else:
+                            rows = ", ".join(f"{r.la} {r.phase} {r.year_label}"
+                                             for r in flagged.itertuples())
+                            st.warning(
+                                f"⚠️ **Check these rows:** {rows} differ from the reference by more "
+                                f"than 1 percentage point (largest gap {worst:.1f}pp). Note that in "
+                                "the reference spreadsheet the final year (2023/24) was **not** "
+                                "calculated — its `MYE 4-10`/`MYE 11-16` cells are blank and its "
+                                "percentage was carried over unchanged from 2022/23, with the resident "
+                                "headcount back-derived from it. The app's figure for that year is a "
+                                "genuine calculation, so a gap there is expected and the app's value "
+                                "is the more reliable one.")
+
+        st.divider()
+        # ── 4 · SEN (slides 18-20) ───────────────────────────────────────────
+        st.markdown("### 4 · Special educational needs")
+        st.markdown(
+            "Two things move independently here: the **number** of SEN pupils (which follows the "
+            "overall roll) and the **rate** of SEN (the share of pupils with an EHC plan or on SEN "
+            "support). Westminster's SEN headcount has fallen with its shrinking roll even as the "
+            "SEN *rate* has risen.")
+        if df_sen.empty:
+            st.info("SEN file not found — add `SEN_data-special-educational-needs-in-england.csv`.")
+        else:
+            s1, s2, s3 = st.columns(3)
+            ph_s = s1.selectbox("Phase", [p for p in PHASES_MAIN if p != "Independent school"],
+                                key="sen_phase")
+            meas_s = s2.selectbox("Measure", ["SEN rate (% of pupils)",
+                                              "SEN headcount (indexed to baseline = 100)",
+                                              "SEN headcount"], key="sen_meas")
+            prov_s = s3.selectbox("SEN provision", ["All SEN", "Education, health and care plan",
+                                                    "SEN support / SEN without an EHC plan"],
+                                  key="sen_prov")
+            base = df_sen[df_sen["phase"] == ph_s] if ph_s != "All phases" else df_sen
+            tot = base[base["provision"] == "Total"].groupby(
+                ["year", "year_label", "geo"], as_index=False)["count"].sum().rename(columns={"count": "total"})
+            if prov_s == "All SEN":
+                sen_c = base[base["provision"] != "Total"]
+            else:
+                sen_c = base[base["provision"] == prov_s]
+            sen_c = sen_c.groupby(["year", "year_label", "geo"], as_index=False)["count"].sum().rename(
+                columns={"count": "sen"})
+            mg = tot.merge(sen_c, on=["year", "year_label", "geo"], how="left")
+            mg["sen"] = mg["sen"].fillna(0)
+            mg["rate"] = np.where(mg["total"] > 0, mg["sen"] / mg["total"] * 100, np.nan)
+            sel_s = st.multiselect("Areas", COMPARATORS, default=COMPARATORS, key="sen_geos")
+            mg = mg[mg["geo"].isin(sel_s)]
+            if mg.empty:
+                st.info("No SEN data for that combination.")
+            else:
+                if meas_s.startswith("SEN rate"):
+                    mg["value"] = mg["rate"]; ylab = "% of pupils with SEN"; fmt = ":.1f"
+                elif meas_s.startswith("SEN headcount (indexed"):
+                    ix = index_to_baseline(mg.rename(columns={"sen": "count"}), "count",
+                                           mg["year"].min(), "index")
+                    mg = ix; ylab = "Indexed SEN headcount (baseline = 100)"; fmt = ":.1f"
+                else:
+                    mg["value"] = mg["sen"]; ylab = "SEN pupils (headcount)"; fmt = ":,"
+                chart_title(f"{meas_s} — {ph_s.lower()}, {prov_s.lower()}",
+                            "Westminster in strong colour · London and England dashed")
+                pal3 = borough_palette(sorted(mg["geo"].unique()))
+                figs = go.Figure()
+                for g in sorted(mg["geo"].unique(), key=lambda x: (x in AVERAGE_COLOURS, x)):
+                    s = mg[mg["geo"] == g].sort_values("year")
+                    figs.add_trace(go.Scatter(
+                        x=s["year_label"], y=s["value"], mode="lines+markers", name=g,
+                        line=dict(color=pal3[g], **line_style(g)),
+                        marker=dict(size=8 if g == "Westminster" else 5),
+                        hovertemplate="<b>" + g + "</b><br>%{x}: %{y" + fmt + "}<extra></extra>"))
+                if meas_s.startswith("SEN headcount (indexed"):
+                    figs.add_hline(y=100, line_dash="dot", line_color="#BBBBBB")
+                figs.update_xaxes(title="Academic year")
+                figs.update_yaxes(title=ylab)
+                show_chart(figs, "sen_trend", "DfE special educational needs in England")
+                legend_hint()
+
+            # SEN provision split for Westminster (EHCP vs SEN support)
+            wsen = df_sen[(df_sen["geo"] == "Westminster") & (df_sen["provision"] != "Total")]
+            if ph_s != "All phases":
+                wsen = wsen[wsen["phase"] == ph_s]
+            wsen = wsen.groupby(["year_label", "provision"], as_index=False)["count"].sum()
+            if not wsen.empty:
+                chart_title("Westminster's SEN pupils by type of provision",
+                            "EHC plans vs SEN support · stacked headcount")
+                figsp = px.bar(wsen, x="year_label", y="count", color="provision",
+                               color_discrete_map={"Education, health and care plan": FOCAL,
+                                                   "SEN support / SEN without an EHC plan": "#8598CE"})
+                figsp.update_xaxes(title="Academic year")
+                figsp.update_yaxes(title="SEN pupils")
+                show_chart(figsp, "sen_split", "DfE special educational needs in England")
+
+        source_line("Pupil totals, independent-school shares and SEN counts: DfE Explore Education "
+                    "Statistics (School pupils and their characteristics; Special educational needs "
+                    "in England; cross-border movement). London and England totals are the regional "
+                    "and national rows of the SEN publication.")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 6 — CHILDCARE COSTS
+# DfE Childcare and early years provider survey — hourly fees across London LAs.
+# ══════════════════════════════════════════════════════════════════════════════
+with tab6:
+    st.subheader("Childcare costs across London")
+    st.markdown(
+        "**Dataset:** DfE *Childcare and early years provider survey* — the hourly fee charged by "
+        "providers, for **2-year-olds** and **3-and-4-year-olds**, in every London borough. "
+        "Childcare cost is one of the pressures behind families leaving high-cost inner London, so "
+        "it sits alongside the births and migration evidence in the next tab. "
+        "The survey publishes London local authorities only, so England-wide comparison is not "
+        "available here; the **London average** shown is the mean across boroughs.")
+
+    if df_ccosts.empty:
+        st.info("Childcare cost file not found — add "
+                "`costs_data-childcare-and-early-years-provider-survey.csv` to the `data` folder.")
+    else:
+        cc1, cc2, cc3 = st.columns(3)
+        age_c = cc1.selectbox("Child age", sorted(df_ccosts["child_age"].unique()), key="cc_age")
+        yr_c = cc2.selectbox("Year", sorted(df_ccosts["year"].dropna().unique(), reverse=True),
+                             key="cc_year")
+        meas_c = cc3.selectbox("Measure", ["Median hourly fee", "Mean hourly fee"], key="cc_meas")
+        vcol = "median_fee" if meas_c.startswith("Median") else "mean_fee"
+
+        d = df_ccosts[(df_ccosts["child_age"] == age_c) & (df_ccosts["year"] == yr_c)].copy()
+        d = d.dropna(subset=[vcol])
+        if d.empty:
+            st.info("No childcare data for that combination.")
+        else:
+            ldn_avg = d[vcol].mean()
+            wrow = d[d["la"] == "Westminster"]
+            wval = float(wrow[vcol].iloc[0]) if len(wrow) else np.nan
+            rank = int((d[vcol] > wval).sum() + 1) if pd.notna(wval) else None
+
+            k1, k2, k3, k4 = st.columns(4)
+            k1.metric(f"Westminster — {meas_c.lower()}",
+                      f"£{wval:.2f}" if pd.notna(wval) else "—",
+                      delta=f"{(wval-ldn_avg):+.2f} vs London avg" if pd.notna(wval) else None,
+                      delta_color="inverse",
+                      help="Hourly childcare fee for the selected age group. Red = more expensive "
+                           "than the London average.")
+            k2.metric("London average", f"£{ldn_avg:.2f}")
+            k3.metric("Westminster rank in London",
+                      f"{rank} of {len(d)}" if rank else "—",
+                      help="1 = most expensive borough in London.")
+            prev = df_ccosts[(df_ccosts["child_age"] == age_c) &
+                             (df_ccosts["year"] == yr_c - 1) & (df_ccosts["la"] == "Westminster")]
+            if len(prev) and pd.notna(wval):
+                pv = float(prev[vcol].iloc[0])
+                k4.metric(f"Change since {yr_c-1}", f"{(wval/pv-1)*100:+.1f}%",
+                          delta_color="inverse")
+            else:
+                k4.metric(f"Change since {yr_c-1}", "—")
+
+            # ── ranked bar across all London boroughs
+            dr = d.sort_values(vcol)
+            chart_title(f"{meas_c} for {age_c}, {yr_c}",
+                        "Every London borough ranked · Westminster highlighted · "
+                        "dashed line = London average")
+            colc = np.where(dr["la"] == "Westminster", FOCAL, CONTEXT_BAR)
+            figc = go.Figure(go.Bar(
+                x=dr[vcol], y=dr["la"], orientation="h", marker_color=colc,
+                text=[f"£{v:.2f}" for v in dr[vcol]], textposition="outside",
+                hovertemplate="<b>%{y}</b><br>" + meas_c + ": £%{x:.2f}<extra></extra>"))
+            figc.add_vline(x=ldn_avg, line_dash="dash", line_color=AVERAGE_COLOURS[LONDON])
+            figc.update_xaxes(title=f"{meas_c} (£)", range=[0, float(dr[vcol].max()) * 1.18])
+            figc.update_yaxes(title="")
+            figc.update_layout(height=700)
+            show_chart(figc, "cc_rank", "DfE childcare and early years provider survey")
+
+            # ── London choropleth
+            if borough_gj is not None:
+                id_by_code = {}
+                for ft in borough_gj["features"]:
+                    p = ft["properties"]
+                    code = next((v for v in p.values()
+                                 if isinstance(v, str) and v.startswith("E09")), None)
+                    if code:
+                        id_by_code[code] = ft["id"]
+                dm = d.copy()
+                dm["gid"] = dm["la_code"].map(id_by_code)
+                if dm["gid"].isna().all():
+                    id_by_name = {}
+                    for ft in borough_gj["features"]:
+                        p = ft["properties"]
+                        nm = (p.get("name") or p.get("BoroughNa") or p.get("NAME") or
+                              next((v for k, v in p.items() if isinstance(v, str) and "E09" not in v), ""))
+                        id_by_name[_norm_la(nm)] = ft["id"]
+                    dm["gid"] = dm["la"].map(id_by_name)
+                dm = dm.dropna(subset=["gid"])
+                if not dm.empty:
+                    chart_title(f"Where childcare costs most — {age_c}, {yr_c}",
+                                "Darker = more expensive per hour · hover for the borough fee")
+                    figmm = choropleth(borough_gj, dm["gid"], dm[vcol], dm["la"],
+                                       f"{meas_c} (£)", [[0, WCC["light_blue"]], [1, FOCAL]],
+                                       fmt=":.2f", zoom=9, center={"lat": 51.50, "lon": -0.12},
+                                       height=520)
+                    show_chart(figmm, "cc_map", "DfE childcare and early years provider survey")
+
+        # ── age-group comparison + year-on-year change
+        st.divider()
+        st.markdown("### Comparing age groups and years")
+        cmp_geo = st.multiselect(
+            "Areas", sorted(df_ccosts["la"].unique()),
+            default=[g for g in ["Westminster"] + [n for n in NEIGHBOURS if n != "Westminster"]
+                     if g in set(df_ccosts["la"])], key="cc_geos")
+        dd = df_ccosts[df_ccosts["la"].isin(cmp_geo)].dropna(subset=[vcol])
+        if not dd.empty:
+            chart_title(f"{meas_c} by age group and year",
+                        "Grouped by borough · 2-year-olds cost more per hour than 3-and-4-year-olds")
+            dd = dd.copy()
+            dd["grp"] = dd["child_age"] + " · " + dd["year"].astype(str)
+            figg = px.bar(dd.sort_values("la"), x="la", y=vcol, color="grp", barmode="group",
+                          color_discrete_sequence=[FOCAL, "#5FA8A0", "#D0A44C", "#C57B8A"])
+            figg.update_xaxes(title="")
+            figg.update_yaxes(title=f"{meas_c} (£)")
+            show_chart(figg, "cc_group", "DfE childcare and early years provider survey")
+
+            # affordability framing
+            st.info("**Reading these figures:** hourly fees are only half the affordability picture — "
+                    "the other half is local earnings. Westminster combines high fees with high median "
+                    "pay, so its *affordability ratio* is better than boroughs with similar fees but "
+                    "lower wages. Where a fee-to-earnings ratio is needed, pair this with ONS "
+                    "median hourly pay by borough.")
+
+        source_line("Childcare fees: DfE Childcare and early years provider survey (London local "
+                    "authorities). Fees are the hourly amount charged by providers, not the amount "
+                    "paid by parents after free-entitlement hours and subsidies.")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB 7 — BIRTHS, MIGRATION & CHILD POPULATION DECLINE
+# The demographic drivers: fewer births, net outflow of families, and the
+# resulting decline in the school-age cohort — with a simple forward projection.
+# ══════════════════════════════════════════════════════════════════════════════
+with tab7:
+    st.subheader("Why the child population is falling")
+    st.markdown(
+        "Three forces drive Westminster's shrinking child population: **fewer births**, "
+        "**net domestic out-migration of families**, and the way those two feed through into "
+        "each successive school cohort. This tab brings them together and projects the trend "
+        "forward.")
+
+    # ── headline metrics ──────────────────────────────────────────────────────
+    mk1, mk2, mk3, mk4 = st.columns(4)
+    if not df_mye_la.empty:
+        w = df_mye_la[(df_mye_la["area"] == "Westminster") & (df_mye_la["gender"] == "Total")]
+        w = w.groupby("year", as_index=False)["population"].sum().sort_values("year")
+        if len(w) > 1:
+            latest, first = w.iloc[-1], w.iloc[0]
+            peak = w.loc[w["population"].idxmax()]
+            mk1.metric(f"Children 0–19 ({int(latest['year'])})", f"{int(latest['population']):,}",
+                       delta=f"{(latest['population']/peak['population']-1)*100:+.1f}% vs {int(peak['year'])} peak",
+                       delta_color="inverse",
+                       help="ONS mid-year estimates, Westminster residents aged 0–19.")
+            mk2.metric("Peak child population", f"{int(peak['population']):,} ({int(peak['year'])})")
+    if not df_migr.empty:
+        wm = df_migr[(df_migr["area_code"] == "E09000033") & (df_migr["age_band"] == "0-15")]
+        if not wm.empty:
+            net = float(wm["net"].iloc[0])
+            mk3.metric("Net internal migration, 0–15 (2024)", f"{net:,.0f}",
+                       delta="net outflow" if net < 0 else "net inflow", delta_color="inverse",
+                       help="Children moving into Westminster from elsewhere in the UK minus those "
+                            "moving out. Excludes international migration.")
+    if not df_sen.empty:
+        pr = sen_totals(df_sen, "State-funded primary")
+        pw = pr[pr["geo"] == "Westminster"].sort_values("year")
+        if len(pw) > 1:
+            mk4.metric("State-funded primary roll",
+                       f"{int(pw['count'].iloc[-1]):,}",
+                       delta=f"{(pw['count'].iloc[-1]/pw['count'].iloc[0]-1)*100:+.1f}% since {int(pw['year'].iloc[0])}",
+                       delta_color="inverse")
+
+    st.divider()
+    # ── 1 · Births ────────────────────────────────────────────────────────────
+    st.markdown("### 1 · Births")
+    st.markdown(
+        "Births are the leading indicator: today's births set the size of the reception cohort in "
+        "four years and the secondary cohort in eleven. Westminster's births have fallen sharply "
+        "since the mid-2010s.")
+    if df_births.empty:
+        st.info(
+            "**Births data not loaded.** The app looks for `births_by_age_of_mother.csv` in the "
+            "`data` folder and, if it isn't there, calls the Nomis API (dataset NM_205_1) directly. "
+            "Add the CSV to `data/` for a fast, offline-safe load — the API call is skipped whenever "
+            "the file is present. Once loaded, this section shows total births by borough over time "
+            "and the age-of-mother breakdown.")
+    else:
+        b1, b2 = st.columns(2)
+        las_b = sorted(df_births["la"].unique())
+        sel_b = b1.multiselect("Boroughs", las_b,
+                               default=[l for l in las_b if l in set(COMPARATORS)] or las_b,
+                               key="b_geos")
+        ages_b = sorted(df_births["age_of_mother"].unique())
+        age_b = b2.selectbox("Age of mother", ["All ages"] + [a for a in ages_b if a != "All ages"],
+                             key="b_age")
+        db = df_births[df_births["la"].isin(sel_b)]
+        db = (db if age_b == "All ages" else db[db["age_of_mother"] == age_b])
+        db = db.groupby(["year", "la"], as_index=False)["births"].sum()
+        yr_min, yr_max = int(db["year"].min()), int(db["year"].max())
+        rng_b = st.slider("Years", yr_min, yr_max, (yr_min, yr_max), key="b_years")
+        db = db[(db["year"] >= rng_b[0]) & (db["year"] <= rng_b[1])]
+        if not db.empty:
+            chart_title(f"Live births by borough — {age_b.lower()}",
+                        "Westminster in strong colour · comparators muted")
+            palb = borough_palette(sorted(db["la"].unique()))
+            figb = go.Figure()
+            for g in sorted(db["la"].unique()):
+                s = db[db["la"] == g].sort_values("year")
+                figb.add_trace(go.Scatter(
+                    x=s["year"], y=s["births"], mode="lines+markers", name=g,
+                    line=dict(color=palb[g], **line_style(g)),
+                    marker=dict(size=8 if g == "Westminster" else 5),
+                    hovertemplate="<b>" + g + "</b><br>%{x}: %{y:,.0f} births<extra></extra>"))
+            figb.update_xaxes(title="Year")
+            figb.update_yaxes(title="Live births", rangemode="tozero")
+            show_chart(figb, "births_ts", "ONS births via Nomis")
+            legend_hint()
+
+            # indexed view so boroughs of different size are comparable
+            ib = db.rename(columns={"la": "geo", "births": "count"})
+            ib = index_to_baseline(ib, "count", int(db["year"].min()), "index")
+            if not ib.empty:
+                chart_title("Births indexed to the first year shown (= 100)",
+                            "Removes the size difference between boroughs to compare the rate of decline")
+                figbi = go.Figure()
+                for g in sorted(ib["geo"].unique()):
+                    s = ib[ib["geo"] == g].sort_values("year")
+                    figbi.add_trace(go.Scatter(
+                        x=s["year"], y=s["value"], mode="lines", name=g,
+                        line=dict(color=palb.get(g, CONTEXT_LINE), **line_style(g)),
+                        hovertemplate="<b>" + g + "</b><br>%{x}: %{y:.1f}<extra></extra>"))
+                figbi.add_hline(y=100, line_dash="dot", line_color="#BBBBBB")
+                figbi.update_xaxes(title="Year"); figbi.update_yaxes(title="Index (first year = 100)")
+                show_chart(figbi, "births_index", "ONS births via Nomis")
+
+    # ── births by LSOA map ────────────────────────────────────────────────────
+    st.markdown("**Births by Westminster LSOA, over time**")
+    if df_births_lsoa.empty:
+        st.info("LSOA-level births not loaded — add `births_by_lsoa.csv` (Nomis dataset NM_206_1) "
+                "to the `data` folder to enable the small-area births map and its year slider.")
+    elif lsoa_gj is None:
+        st.info("LSOA boundary file not found — needed to draw the births map.")
+    else:
+        yrs_l = sorted(df_births_lsoa["year"].unique())
+        yr_l = st.select_slider("Year", options=yrs_l, value=yrs_l[-1], key="bl_year")
+        dl = df_births_lsoa[df_births_lsoa["year"] == yr_l].groupby(
+            ["LSOA_CODE", "LSOA_NAME"], as_index=False)["births"].sum()
+        dl = add_ward(dl)
+        chart_title(f"Live births by LSOA, {int(yr_l)}",
+                    "Darker = more births · hover for the ward · move the slider to see change over time")
+        figbl = choropleth(lsoa_gj, dl["LSOA_CODE"], dl["births"], dl["LSOA_NAME"],
+                           "Births", [[0, WCC["light_blue"]], [1, FOCAL]],
+                           wards=dl["Ward"].tolist(), fmt=":,")
+        show_chart(figbl, "births_lsoa_map", "ONS births by LSOA via Nomis")
+
+    st.divider()
+    # ── 2 · Domestic migration ───────────────────────────────────────────────
+    st.markdown("### 2 · Domestic (internal) migration")
+    st.markdown(
+        "Internal migration is movement **within the UK**. Westminster loses children in every "
+        "primary and secondary age band but gains sharply at 15–19, when students and young adults "
+        "move in — so a single 'all ages' figure hides what is happening to families.")
+    if df_migr.empty:
+        st.info("Internal migration data not found. Add the small pre-aggregated file "
+                "`internal_migration_children_2024.csv` to `data/` (recommended), or the full ONS "
+                "workbook `detailedestimates2024on2023las.xlsx` — the app will aggregate it, but "
+                "that takes several minutes on first load.")
+    else:
+        g1, g2 = st.columns(2)
+        band_m = g1.selectbox("Age band", ["0-4", "5-9", "10-14", "15-19", "0-15", "All ages"],
+                              index=4, key="mig_band")
+        meas_m = g2.selectbox("Measure", ["Net migration", "Inflow", "Outflow"], key="mig_meas")
+        mcol = {"Net migration": "net", "Inflow": "inflow", "Outflow": "outflow"}[meas_m]
+        dm2 = df_migr[df_migr["age_band"] == band_m].copy()
+
+        # Westminster's own age profile — the key insight
+        wprof = df_migr[(df_migr["area_code"] == "E09000033") &
+                        (df_migr["age_band"].isin(["0-4", "5-9", "10-14", "15-19"]))]
+        if not wprof.empty:
+            order = ["0-4", "5-9", "10-14", "15-19"]
+            wprof = wprof.set_index("age_band").reindex(order).reset_index()
+            chart_title("Westminster loses children but gains young adults (2024)",
+                        "Net internal migration by age band · negative = more leaving than arriving")
+            colsw = np.where(wprof["net"] < 0, FOCAL, "#94B36A")
+            figw = go.Figure(go.Bar(
+                x=wprof["age_band"], y=wprof["net"], marker_color=colsw,
+                text=[f"{v:+,.0f}" for v in wprof["net"]], textposition="outside",
+                hovertemplate="Age %{x}<br>Net internal migration: %{y:+,.0f}<extra></extra>"))
+            figw.add_hline(y=0, line_color="#888888")
+            figw.update_xaxes(title="Age band")
+            figw.update_yaxes(title="Net internal migration (people)")
+            show_chart(figw, "mig_profile", "ONS internal migration detailed estimates, 2024")
+
+        # London ranking + map
+        if borough_gj is not None:
+            code_to_id, id_to_name = {}, {}
+            for ft in borough_gj["features"]:
+                p = ft["properties"]
+                code = next((v for v in p.values() if isinstance(v, str) and v.startswith("E09")), None)
+                nm = (p.get("name") or p.get("BoroughNa") or p.get("NAME") or
+                      next((v for k, v in p.items() if isinstance(v, str) and "E09" not in v), ""))
+                if code:
+                    code_to_id[code] = ft["id"]; id_to_name[ft["id"]] = _norm_la(nm)
+            dm2["gid"] = dm2["area_code"].map(code_to_id)
+            dmap = dm2.dropna(subset=["gid"]).copy()
+            dmap["name"] = dmap["gid"].map(id_to_name)
+            if not dmap.empty:
+                chart_title(f"{meas_m} of children aged {band_m} across London (2024)",
+                            "Internal (within-UK) moves only · hover for the borough figure")
+                if mcol == "net":
+                    lim = float(np.nanmax(np.abs(dmap[mcol]))) or 1.0
+                    scale = [[0, "#C0504D"], [0.5, "#F2F2F2"], [1, "#2E6E4E"]]
+                    figmg = choropleth(borough_gj, dmap["gid"], dmap[mcol], dmap["name"],
+                                       "Net migration", scale, fmt=":,.0f",
+                                       zoom=9, center={"lat": 51.50, "lon": -0.12}, height=520)
+                    figmg.data[0].update(zmin=-lim, zmax=lim)
+                else:
+                    figmg = choropleth(borough_gj, dmap["gid"], dmap[mcol], dmap["name"],
+                                       meas_m, [[0, WCC["light_blue"]], [1, FOCAL]], fmt=":,.0f",
+                                       zoom=9, center={"lat": 51.50, "lon": -0.12}, height=520)
+                show_chart(figmg, "mig_map", "ONS internal migration detailed estimates, 2024")
+
+                rank_m = dmap.sort_values(mcol)
+                chart_title(f"London boroughs ranked — {meas_m.lower()}, ages {band_m} (2024)",
+                            "Westminster highlighted")
+                colr = np.where(rank_m["name"] == "Westminster", FOCAL, CONTEXT_BAR)
+                figrm = go.Figure(go.Bar(
+                    x=rank_m[mcol], y=rank_m["name"], orientation="h", marker_color=colr,
+                    hovertemplate="<b>%{y}</b><br>" + meas_m + ": %{x:,.0f}<extra></extra>"))
+                figrm.update_xaxes(title=f"{meas_m} (people)")
+                figrm.update_yaxes(title="")
+                figrm.update_layout(height=700)
+                show_chart(figrm, "mig_rank", "ONS internal migration detailed estimates, 2024")
+
+    st.divider()
+    # ── 3 · School-age cohorts (single year of age) ──────────────────────────
+    st.markdown("### 3 · Resident school-age cohorts")
+    st.markdown(
+        "Resident cohorts are built from **single years of age**, following the method used in the "
+        "child-population analysis: the **primary** cohort is ages **4–10** (reception is age 4 "
+        "turning 5; year 6 is age 10 turning 11) and the **secondary** cohort is ages **11–16** "
+        "(every pupil turns 16 by the end of year 11). The transition bands (10–12 and 15–17) show "
+        "where cohorts are lost between school phases.")
+    if df_syoa.empty:
+        st.info(
+            "**Single-year-of-age population not loaded.** Add "
+            "`population_single_year_of_age.csv` to the `data` folder (Nomis dataset NM_2002_1, "
+            "ages 4–16 for Westminster and its neighbours); if it is absent the app calls the Nomis "
+            "API directly. This section then shows each school cohort's size and its change over time, "
+            "which is also the resident headcount behind the independent-school estimate.")
+    else:
+        q1, q2 = st.columns(2)
+        coh = q1.selectbox("Cohort", list(SCHOOL_COHORTS), key="coh_sel")
+        mode_c = q2.selectbox("Measure", ["% change vs first year", "Population"], key="coh_mode")
+        lo, hi = SCHOOL_COHORTS[coh]
+        dc = df_syoa[(df_syoa["age"] >= lo) & (df_syoa["age"] <= hi)]
+        dc = dc.groupby(["year", "la"], as_index=False)["population"].sum()
+        sel_c = st.multiselect("Boroughs", sorted(dc["la"].unique()),
+                               default=sorted(dc["la"].unique()), key="coh_geos")
+        dc = dc[dc["la"].isin(sel_c)]
+        if dc.empty:
+            st.info("No cohort data for that selection.")
+        else:
+            if mode_c.startswith("%"):
+                ic = index_to_baseline(dc.rename(columns={"la": "geo", "population": "count"}),
+                                       "count", int(dc["year"].min()), "pct_change")
+                ic = ic.rename(columns={"geo": "la"}); ycol, ylab, fmt = "value", f"% change since {int(dc['year'].min())}", ":.1f"
+            else:
+                ic = dc.rename(columns={"population": "value"}); ycol, ylab, fmt = "value", "Resident children", ":,"
+            chart_title(f"{coh} — {mode_c.lower()}",
+                        "ONS mid-year estimates by single year of age · Westminster in strong colour")
+            palcc = borough_palette(sorted(ic["la"].unique()))
+            figcc = go.Figure()
+            for g in sorted(ic["la"].unique()):
+                sg = ic[ic["la"] == g].sort_values("year")
+                figcc.add_trace(go.Scatter(
+                    x=sg["year"], y=sg[ycol], mode="lines+markers", name=g,
+                    line=dict(color=palcc[g], **line_style(g)),
+                    marker=dict(size=8 if g == "Westminster" else 5),
+                    hovertemplate="<b>" + g + "</b><br>%{x}: %{y" + fmt + "}<extra></extra>"))
+            if mode_c.startswith("%"):
+                figcc.add_hline(y=0, line_dash="dot", line_color="#BBBBBB")
+            figcc.update_xaxes(title="Year"); figcc.update_yaxes(title=ylab)
+            show_chart(figcc, "cohort_trend", "ONS mid-year estimates by single year of age (Nomis)")
+            legend_hint()
+
+    st.divider()
+    # ── 4 · Cohort decline + projection ──────────────────────────────────────
+    st.markdown("### 4 · The child population trend, and where it is heading")
+    st.markdown(
+        "The chart below tracks Westminster's resident child population and extends the recent "
+        "trend forward. The projection is a **simple linear extrapolation** of the most recent "
+        "years — it is a trend indicator, not an official ONS projection, and it assumes migration "
+        "and birth patterns continue unchanged.")
+    if df_mye_la.empty:
+        st.info("Borough mid-year estimates not found — needed for the population trend.")
+    else:
+        p1, p2, p3 = st.columns(3)
+        age_p = p1.selectbox("Age band", ["All 0–19"] + MYE_AGE_ORDER, key="proj_age")
+        fit_p = p2.slider("Years of history used for the trend", 5, 20, 10, key="proj_fit")
+        to_p = p3.slider("Project to", 2025, 2040, 2035, key="proj_to")
+        sel_p = st.multiselect("Boroughs", list(NEIGHBOURS), default=["Westminster"], key="proj_geos")
+
+        dpop = df_mye_la[(df_mye_la["gender"] == "Total") & (df_mye_la["area"].isin(sel_p))]
+        if age_p != "All 0–19":
+            dpop = dpop[dpop["age"] == age_p]
+        dpop = dpop.groupby(["area", "year"], as_index=False)["population"].sum()
+        if dpop.empty:
+            st.info("No population data for that selection.")
+        else:
+            chart_title(f"Child population and projected trend to {to_p} — {age_p.lower()}",
+                        "Solid = ONS mid-year estimates · dotted = linear projection of the recent trend")
+            palp = borough_palette(sorted(dpop["area"].unique()))
+            figpj = go.Figure()
+            for g in sorted(dpop["area"].unique()):
+                s = dpop[dpop["area"] == g].sort_values("year")
+                figpj.add_trace(go.Scatter(
+                    x=s["year"], y=s["population"], mode="lines", name=g,
+                    line=dict(color=palp[g], **line_style(g)),
+                    hovertemplate="<b>" + g + "</b><br>%{x}: %{y:,.0f}<extra></extra>"))
+                hist = s.tail(fit_p)
+                if len(hist) >= 3:
+                    coef = np.polyfit(hist["year"], hist["population"], 1)
+                    fx = np.arange(int(s["year"].max()), to_p + 1)
+                    fy = np.polyval(coef, fx)
+                    figpj.add_trace(go.Scatter(
+                        x=fx, y=fy, mode="lines", name=f"{g} (projected)",
+                        line=dict(color=palp[g], width=2, dash="dot"), showlegend=True,
+                        hovertemplate="<b>" + g + " (projected)</b><br>%{x}: %{y:,.0f}<extra></extra>"))
+            figpj.update_xaxes(title="Year")
+            figpj.update_yaxes(title="Children", rangemode="tozero")
+            show_chart(figpj, "pop_projection", "ONS mid-year estimates + linear trend projection")
+
+            if "Westminster" in set(dpop["area"]):
+                sw = dpop[dpop["area"] == "Westminster"].sort_values("year")
+                hist = sw.tail(fit_p)
+                if len(hist) >= 3:
+                    coef = np.polyfit(hist["year"], hist["population"], 1)
+                    proj = np.polyval(coef, to_p)
+                    now = sw["population"].iloc[-1]
+                    st.warning(
+                        f"**On the trend of the last {fit_p} years**, Westminster's {age_p.lower()} "
+                        f"population would fall from **{now:,.0f}** in {int(sw['year'].iloc[-1])} to "
+                        f"about **{proj:,.0f}** by {to_p} — a change of **{(proj/now-1)*100:+.0f}%**. "
+                        "Treat this as a direction of travel, not a forecast: it assumes the recent "
+                        "rate of decline simply continues.")
+
+    source_line("Births: ONS birth registrations via Nomis (see the User guide to birth statistics "
+                "for definitions — births are assigned to the mother's usual residence). Internal "
+                "migration: ONS detailed internal-migration estimates, 2024 (within-UK moves only; "
+                "international migration is excluded). Population: ONS mid-year estimates. "
+                "Projections are a simple linear extrapolation by this app, not an official projection.")
 
 # ── FOOTER ────────────────────────────────────────────────────────────────────
 st.divider()
