@@ -1114,6 +1114,26 @@ def load_internal_migration():
 NOMIS_BIRTHS_LA = ("https://www.nomisweb.co.uk/api/v01/dataset/NM_205_1.data.csv?"
                    "geography=1774190698,1774190704,1774190710,1774190711,1774190723,1774190724"
                    "&age_of_mother=101,103...109&measures=20100")
+NOMIS_BIRTHS_LSOA = (
+    "https://www.nomisweb.co.uk/api/v01/dataset/NM_206_1.data.csv?geography="
+    "633344309,633344311,633344375,633344381,633344308,633344310,633344312,"
+    "633344361,633344362,633344313,633344376,633344377,633344379,633344380,"
+    "633344369...633344373,633344329,633344330,633344332...633344334,633344374,"
+    "633344331,633344357...633344359,633344404,633344353,633344355,633344356,"
+    "633344360,633373613,633344320,633344321,633344363,633344378,633344328,"
+    "633344354,633371587,633371589...633371593,633344402,633344403,633344405,"
+    "633370765,633370766,633344364,633344365,633344367,633344368,633344408,"
+    "633344318,633344319,633344322...633344324,633344366,633344409,633344410,"
+    "633373614,633344315...633344317,633344406,633373615,633344335,"
+    "633344338...633344340,633371584,633371585,633344336,633344337,633344346,"
+    "633344349,633344352,633344314,633344345,633344347,633344348,633344350,"
+    "633344351,633344385...633344387,633344407,633344341...633344344,633373616,"
+    "633344382...633344384,633344393,633344396,633344389,633344392,633344394,"
+    "633344395,633373617,633373618,633344391,633344397,633344399...633344401,"
+    "633344326,633344398,633371586,633371588,633373619,633344325,633344327,"
+    "633344388,633344390,633373620"
+    "&measures=20100")
+
 NOMIS_POP_SYOA = ("https://www.nomisweb.co.uk/api/v01/dataset/NM_2002_1.data.csv?"
                   "geography=1774190698,1774190704,1774190710,1774190711,1774190723,1774190724"
                   "&gender=0&c_age=101...117&measures=20100")
@@ -1154,7 +1174,250 @@ def load_pop_syoa():
     })
     return out.dropna(subset=["year", "age", "population"]).reset_index(drop=True)
 
+@st.cache_data(show_spinner=False)
+def load_sen_ethnicity():
+    """DfE SEN provision by LA, year and ETHNICITY (the second SEN export in the
+    data-sources note). EES names the ethnicity column differently between releases
+    (`ethnicity`, `ethnicity_major`, `ethnicity_minor`, `characteristic`...), so the
+    column is detected rather than assumed. Returns tidy:
+    year, year_label, geo, phase, provision, ethnicity, count."""
+    COLS = ["year", "year_label", "geo", "phase", "provision", "ethnicity", "count"]
+    fn = None
+    for cand in ["SEN_ethnicity_data-special-educational-needs-in-england.csv",
+                 "sen_ethnicity.csv", "SEN_by_ethnicity.csv",
+                 "SEN_provision_by_ethnicity.csv"]:
+        if _exists(cand):
+            fn = cand
+            break
+    if fn is None:
+        # last resort: any SEN-looking csv that actually carries an ethnicity column
+        for d in _SEARCH_DIRS:
+            if not os.path.isdir(d):
+                continue
+            for f in sorted(glob.glob(os.path.join(d, "*.csv"))):
+                if "sen" not in os.path.basename(f).lower():
+                    continue
+                try:
+                    head = pd.read_csv(f, nrows=0)
+                except Exception:
+                    continue
+                if any("ethnic" in str(c).lower() for c in head.columns):
+                    fn = os.path.basename(f)
+                    break
+            if fn:
+                break
+    if fn is None:
+        return pd.DataFrame(columns=COLS)
+    df = pd.read_csv(_dp(fn), low_memory=False)
+    cols = list(df.columns)
+    def pick(*keys, exclude=()):
+        for c in cols:
+            lc = str(c).lower()
+            if all(k in lc for k in keys) and not any(x in lc for x in exclude):
+                return c
+        return None
+    # prefer the broad ethnic grouping over the detailed one when both exist
+    c_eth = (pick("ethnic", "major") or pick("ethnicity") or pick("ethnic", "group")
+             or pick("ethnic", "minor") or pick("ethnic"))
+    if c_eth is None:
+        return pd.DataFrame(columns=COLS)
+    c_count = (pick("pupil_count") or pick("headcount") or pick("count", exclude=("country",))
+               or pick("number"))
+    if c_count is None:
+        return pd.DataFrame(columns=COLS)
+    c_lvl, c_la, c_reg = pick("geographic_level"), pick("la_name"), pick("region_name")
+    c_phase = pick("phase") or pick("school_type")
+    c_prov = pick("sen_provision") or pick("provision")
+    c_time = pick("time_period")
+    if c_lvl is not None:
+        lvl = df[c_lvl].astype(str).str.lower()
+        geo = np.where(lvl == "national", ENGLAND,
+              np.where(lvl == "regional", df[c_reg].astype(str) if c_reg else LONDON,
+                       df[c_la].astype(str) if c_la else "Unknown"))
+    else:
+        geo = df[c_la].astype(str) if c_la else "Unknown"
+    out = pd.DataFrame({
+        "year": df[c_time].map(_year_start) if c_time is not None else np.nan,
+        "year_label": df[c_time].map(_academic_year_label) if c_time is not None else "",
+        "geo": pd.Series(geo).map(_norm_la),
+        "phase": df[c_phase].astype(str).str.strip() if c_phase else "All phases",
+        "provision": df[c_prov].astype(str).str.strip() if c_prov else "Total",
+        "ethnicity": df[c_eth].astype(str).str.strip(),
+        "count": _num(df[c_count]),
+    })
+    out = out[out["geo"].astype(str).str.lower() != "nan"]
+    out = out[~out["ethnicity"].str.lower().isin(["nan", ""])]
+    return out.dropna(subset=["count"]).reset_index(drop=True)
+
+NOMIS_FERTILITY = (
+    "https://www.nomisweb.co.uk/api/v01/dataset/NM_207_1.data.csv?geography="
+    "1774190693...1774190698,1774190692,1774190699...1774190724,"
+    "2092957699,2013265927"
+    "&measure=2...4,12,5...11&measures=20100")
+
+# ── Fertility rates (CBR · GFR · TFR) ─────────────────────────────────────────
+# The data-sources note asks for crude birth rate, general fertility rate and total
+# fertility rate for the nearest neighbours, London and England, but gives no link.
+# Two routes are supported: a ready-made rates table, or derivation from births by
+# age of mother (NM_205_1) plus female population by age band.
+def _age_band_bounds(label):
+    """'Aged 20-24' -> (20,24); 'Under 20' -> (15,19); '45 and over' -> (45,49)."""
+    s = str(label).lower()
+    nums = [int(n) for n in re.findall(r"\d+", s)]
+    if "under" in s and nums:
+        return (15, nums[0] - 1)
+    if ("over" in s or "plus" in s or "+" in s) and nums:
+        return (nums[0], 49)
+    if len(nums) >= 2:
+        return (nums[0], nums[1])
+    if len(nums) == 1:
+        return (nums[0], nums[0])
+    return None
+
+@st.cache_data(show_spinner=False)
+def load_fertility_rates():
+    """Fertility and birth rates (TFR, GFR, crude birth rate, age-specific rates) for
+    London boroughs, London and England — Nomis dataset NM_207_1, or a local CSV.
+
+    Nomis CSVs carry BOTH a numeric code column and a text label column for every
+    dimension (`MEASURE` and `MEASURE_NAME`, `GEOGRAPHY` and `GEOGRAPHY_NAME`), plus an
+    unrelated `MEASURES_NAME` field. Matching on a bare substring picks the numeric code,
+    so `_nomis_pick` explicitly prefers the `*_NAME` label column."""
+    COLS = ["year", "area", "measure", "value"]
+    df = None
+    for cand in ["fertility_rates.csv", "NM_207_1.data.csv",
+                 "births_fertility_rates.csv", "tfr_gfr_cbr.csv"]:
+        if _exists(cand):
+            df = pd.read_csv(_dp(cand), low_memory=False)
+            break
+    if df is None:
+        df = _fetch_csv(NOMIS_FERTILITY, timeout=40)
+    if df is None or df.empty:
+        return pd.DataFrame(columns=COLS)
+
+    cols = list(df.columns)
+    def _nomis_pick(stem, *fallbacks):
+        """Prefer '<stem>_name', then an exact '<stem>', then the fallbacks."""
+        low = {str(c).lower(): c for c in cols}
+        if f"{stem}_name" in low:
+            return low[f"{stem}_name"]
+        if stem in low:
+            return low[stem]
+        for fb in fallbacks:
+            for c in cols:
+                lc = str(c).lower()
+                if fb in lc and not lc.startswith("measures"):
+                    return c
+        return None
+
+    c_year = _nomis_pick("date", "year", "period")
+    c_area = _nomis_pick("geography", "area", "la_name")
+    c_meas = _nomis_pick("measure", "indicator", "rate_type", "metric")
+    c_val = _nomis_pick("obs_value", "value", "rate")
+    if not (c_year and c_area and c_val):
+        return pd.DataFrame(columns=COLS)
+
+    out = pd.DataFrame({
+        "year": _num(df[c_year].astype(str).str.extract(r"(\d{4})")[0]),
+        "area": df[c_area].map(_norm_la),
+        "measure": (df[c_meas].astype(str).str.strip() if c_meas is not None else "Rate"),
+        "value": _num(df[c_val]),
+    })
+    # a numeric 'measure' means we picked the code column, not the label — unusable
+    if out["measure"].str.fullmatch(r"\d+(\.0)?").fillna(False).all():
+        out["measure"] = "Rate"
+    return out.dropna(subset=["year", "value"]).reset_index(drop=True)
+
+def order_fertility_measures(measures):
+    """Headline rates first, then age-specific rates, then everything else."""
+    def rank(m):
+        s = str(m).lower()
+        if "total fertility" in s or s.strip() in ("tfr",):
+            return (0, s)
+        if "general fertility" in s or s.strip() in ("gfr",):
+            return (1, s)
+        if "crude birth" in s or s.strip() in ("cbr",):
+            return (2, s)
+        if "mean age" in s:
+            return (4, s)
+        if any(ch.isdigit() for ch in s):
+            return (3, s)
+        return (5, s)
+    return sorted(measures, key=rank)
+
+@st.cache_data(show_spinner=False)
+def load_female_pop():
+    """Female population by age band, used to derive fertility rates.
+    Expected: year · area · age band · population (any Nomis/ONS extract shape)."""
+    COLS = ["year", "area", "age_band", "population"]
+    fn = None
+    for cand in ["female_population_by_age.csv", "female_pop.csv",
+                 "population_females_by_age.csv"]:
+        if _exists(cand):
+            fn = cand; break
+    if fn is None:
+        return pd.DataFrame(columns=COLS)
+    df = pd.read_csv(_dp(fn), low_memory=False)
+    cols = list(df.columns)
+    def pick(*keys):
+        for c in cols:
+            if all(k in str(c).lower() for k in keys):
+                return c
+        return None
+    c_year = pick("date", "name") or pick("year") or pick("date")
+    c_area = pick("geography", "name") or pick("area") or pick("geography")
+    c_age = pick("c_age", "name") or pick("age", "name") or pick("age")
+    c_val = pick("obs_value") or pick("value") or pick("population")
+    if not (c_year and c_area and c_age and c_val):
+        return pd.DataFrame(columns=COLS)
+    out = pd.DataFrame({
+        "year": _num(df[c_year].astype(str).str.extract(r"(\d{4})")[0]),
+        "area": df[c_area].map(_norm_la),
+        "age_band": df[c_age].astype(str).str.strip(),
+        "population": _num(df[c_val]),
+    })
+    return out.dropna(subset=["year", "population"]).reset_index(drop=True)
+
+def derive_fertility_rates(df_births, df_fpop):
+    """Derive GFR and TFR from births by age of mother and female population by band.
+
+        ASFR(band) = births to mothers in band / female population in band
+        GFR        = total births / females aged 15–44 × 1000
+        TFR        = Σ (ASFR × band width)
+
+    Bands are matched on their numeric bounds, so Nomis and ONS labels can differ."""
+    COLS = ["year", "area", "measure", "value"]
+    if df_births is None or df_births.empty or df_fpop is None or df_fpop.empty:
+        return pd.DataFrame(columns=COLS)
+    b = df_births.copy()
+    b["bounds"] = b["age_of_mother"].map(_age_band_bounds)
+    b = b[b["bounds"].notna()]
+    f = df_fpop.copy()
+    f["bounds"] = f["age_band"].map(_age_band_bounds)
+    f = f[f["bounds"].notna()]
+    if b.empty or f.empty:
+        return pd.DataFrame(columns=COLS)
+    b = b.groupby(["year", "la", "bounds"], as_index=False)["births"].sum().rename(columns={"la": "area"})
+    f = f.groupby(["year", "area", "bounds"], as_index=False)["population"].sum()
+    m = b.merge(f, on=["year", "area", "bounds"], how="inner")
+    if m.empty:
+        return pd.DataFrame(columns=COLS)
+    m = m[m["population"] > 0].copy()
+    m["width"] = m["bounds"].map(lambda t: t[1] - t[0] + 1)
+    m["asfr"] = m["births"] / m["population"]
+    out = []
+    for (yr, area), g in m.groupby(["year", "area"]):
+        tfr = float((g["asfr"] * g["width"]).sum())
+        rep = g[g["bounds"].map(lambda t: t[0] >= 15 and t[1] <= 44)]
+        gfr = (float(rep["births"].sum()) / float(rep["population"].sum()) * 1000
+               if rep["population"].sum() > 0 else np.nan)
+        out.append((int(yr), area, "Total fertility rate (TFR)", tfr))
+        if pd.notna(gfr):
+            out.append((int(yr), area, "General fertility rate (GFR)", gfr))
+    return pd.DataFrame(out, columns=COLS)
+
 SCHOOL_COHORTS = {"Primary cohort (ages 4–10)": (4, 10),
+
                   "Secondary cohort (ages 11–16)": (11, 16),
                   "Year 6→7 transition (ages 10–12)": (10, 12),
                   "Year 11→12 transition (ages 15–17)": (15, 17)}
@@ -1280,6 +1543,8 @@ def load_births_lsoa():
         if _exists(cand):
             df = pd.read_csv(_dp(cand), low_memory=False)
             break
+    if df is None:
+        df = _fetch_csv(NOMIS_BIRTHS_LSOA, timeout=40)   # ~120 Westminster LSOAs
     if df is None or df.empty:
         return pd.DataFrame(columns=COLS)
     cols = {str(c).upper(): c for c in df.columns}
@@ -1397,6 +1662,9 @@ with st.spinner("Loading datasets…"):
     df_syoa      = _safe_load(load_pop_syoa, pd.DataFrame())
     df_wcc_syoa  = _safe_load(load_mye_syoa_wcc, pd.DataFrame(), "Small_Area_Output_Area_Mid_Year_Estimated.xlsx")
     df_indep_calc = compute_independent_estimate(df_xborder, df_syoa, df_wcc_syoa)
+    df_sen_eth   = _safe_load(load_sen_ethnicity, pd.DataFrame())
+    df_fert      = _safe_load(load_fertility_rates, pd.DataFrame())
+    df_fpop      = _safe_load(load_female_pop, pd.DataFrame())
 
 def add_ward(df, code_col="LSOA_CODE"):
     """Attach the LSOA's (dominant) ward as a 'Ward' column + a labelled name."""
@@ -2756,6 +3024,98 @@ with tab5:
                 figsp.update_yaxes(title="SEN pupils")
                 show_chart(figsp, "sen_split", "DfE special educational needs in England")
 
+        st.markdown("#### SEN by ethnicity")
+        st.markdown(
+            "Ethnicity is where Westminster diverges most sharply from London: London has seen SEN "
+            "numbers rise across nearly every ethnic group, while Westminster's changes are mixed "
+            "and, for several groups, strongly negative. Because the overall roll is shrinking, read "
+            "the **rate** alongside the **count** — a falling count can sit with a rising rate.")
+        if df_sen_eth.empty:
+            st.info(
+                "**SEN-by-ethnicity data not loaded.** This is the *second* SEN export in the "
+                "data-sources note (SEN provision by LA and year by ethnicity) — the SEN file "
+                "currently in `data/` has no ethnicity column, so this section cannot be built from "
+                "it. Download that table from Explore Education Statistics and save it to `data/` as "
+                "`SEN_ethnicity_data-special-educational-needs-in-england.csv`. The loader detects "
+                "the ethnicity column automatically, so the exact EES column naming does not matter.")
+        else:
+            e1, e2, e3 = st.columns(3)
+            ph_opts = ["All phases"] + sorted(df_sen_eth["phase"].unique())
+            ph_e = e1.selectbox("Phase", ph_opts,
+                                index=ph_opts.index("State-funded primary")
+                                if "State-funded primary" in ph_opts else 0, key="eth_phase")
+            prov_opts = sorted(df_sen_eth["provision"].unique())
+            prov_e = e2.selectbox("SEN provision", prov_opts, key="eth_prov")
+            meas_e = e3.selectbox("Measure", ["% change over the period", "SEN pupils (count)"],
+                                  key="eth_meas")
+            de = df_sen_eth.copy()
+            if ph_e != "All phases":
+                de = de[de["phase"] == ph_e]
+            de = de[de["provision"] == prov_e]
+            de = de.groupby(["year", "year_label", "geo", "ethnicity"], as_index=False)["count"].sum()
+            geo_e = st.multiselect("Areas to compare", sorted(de["geo"].unique()),
+                                   default=[g for g in ["Westminster", LONDON, ENGLAND]
+                                            if g in set(de["geo"])] or sorted(de["geo"].unique())[:2],
+                                   key="eth_geos")
+            de = de[de["geo"].isin(geo_e)]
+            if de.empty:
+                st.info("No SEN-by-ethnicity data for that combination.")
+            else:
+                yrs_e = sorted(de["year"].unique())
+                if meas_e.startswith("%") and len(yrs_e) > 1:
+                    ya, yb = st.select_slider("Period", options=yrs_e, value=(yrs_e[0], yrs_e[-1]),
+                                              key="eth_period",
+                                              format_func=lambda y: f"{int(y)}/{str(int(y)+1)[2:]}")
+                    a = de[de["year"] == ya].set_index(["geo", "ethnicity"])["count"]
+                    b = de[de["year"] == yb].set_index(["geo", "ethnicity"])["count"]
+                    ch = pd.concat([a.rename("start"), b.rename("end")], axis=1).dropna()
+                    ch = ch[ch["start"] > 0].reset_index()
+                    ch["pct"] = (ch["end"] / ch["start"] - 1) * 100
+                    if ch.empty:
+                        st.info("Not enough overlapping data to compute change for that period.")
+                    else:
+                        order = (ch[ch["geo"] == "Westminster"].sort_values("pct")["ethnicity"].tolist()
+                                 if "Westminster" in set(ch["geo"]) else
+                                 ch.groupby("ethnicity")["pct"].mean().sort_values().index.tolist())
+                        chart_title(
+                            f"Change in SEN pupils by ethnicity, {int(ya)}/{str(int(ya)+1)[2:]} to "
+                            f"{int(yb)}/{str(int(yb)+1)[2:]} — {ph_e.lower()}",
+                            "% change in the number of SEN pupils in each ethnic group · "
+                            "bars right of zero grew, bars left of zero shrank")
+                        pal_e = borough_palette(sorted(ch["geo"].unique()))
+                        fige2 = go.Figure()
+                        for g in sorted(ch["geo"].unique(), key=lambda x: (x in AVERAGE_COLOURS, x)):
+                            sg = ch[ch["geo"] == g].set_index("ethnicity").reindex(order).reset_index()
+                            fige2.add_trace(go.Bar(
+                                y=sg["ethnicity"], x=sg["pct"], orientation="h", name=g,
+                                marker_color=pal_e[g],
+                                hovertemplate="<b>%{y}</b><br>" + g + ": %{x:+.1f}%<extra></extra>"))
+                        fige2.add_vline(x=0, line_color="#888888")
+                        fige2.update_xaxes(title="% change in SEN pupils")
+                        fige2.update_yaxes(title="")
+                        fige2.update_layout(barmode="group", height=max(420, 34 * len(order)))
+                        show_chart(fige2, "sen_eth_change", "DfE SEN in England, by ethnicity")
+                        legend_hint()
+                        if "Westminster" in set(ch["geo"]):
+                            wch = ch[ch["geo"] == "Westminster"]
+                            down = wch[wch["pct"] < 0].sort_values("pct")
+                            if len(down):
+                                names = ", ".join(f"{r.ethnicity} ({r.pct:+.0f}%)"
+                                                  for r in down.head(3).itertuples())
+                                st.info(f"**Largest falls in Westminster:** {names}. Compare each "
+                                        "against the London bar beside it — where London rose and "
+                                        "Westminster fell, the divergence is specific to the borough "
+                                        "rather than a London-wide trend.")
+                else:
+                    chart_title(f"SEN pupils by ethnicity over time — {ph_e.lower()}",
+                                "Counts by ethnic group · use the legend to isolate a group")
+                    tot_e = de.groupby(["year_label", "ethnicity"], as_index=False)["count"].sum()
+                    fige3 = px.line(tot_e.sort_values("year_label"), x="year_label", y="count",
+                                    color="ethnicity", markers=True)
+                    fige3.update_xaxes(title="Academic year")
+                    fige3.update_yaxes(title="SEN pupils")
+                    show_chart(fige3, "sen_eth_ts", "DfE SEN in England, by ethnicity")
+
         source_line("Pupil totals, independent-school shares and SEN counts: DfE Explore Education "
                     "Statistics (School pupils and their characteristics; Special educational needs "
                     "in England; cross-border movement). London and England totals are the regional "
@@ -2996,6 +3356,61 @@ with tab7:
                 figbi.add_hline(y=100, line_dash="dot", line_color="#BBBBBB")
                 figbi.update_xaxes(title="Year"); figbi.update_yaxes(title="Index (first year = 100)")
                 show_chart(figbi, "births_index", "ONS births via Nomis")
+
+    # ── fertility rates (CBR · GFR · TFR) ─────────────────────────────────────
+    st.markdown("**Fertility rates — CBR, GFR and TFR**")
+    st.markdown(
+        "Birth *counts* fall when there are fewer women of childbearing age, even if each woman has "
+        "the same number of children. Fertility **rates** strip that out: the **GFR** is births per "
+        "1,000 women aged 15–44, and the **TFR** is the number of children a woman would have across "
+        "her lifetime at current age-specific rates. Westminster's TFR has been below the London and "
+        "England averages throughout.")
+    _fert_all = pd.concat(
+        [d for d in [df_fert, derive_fertility_rates(df_births, df_fpop)] if d is not None and not d.empty],
+        ignore_index=True) if (not df_fert.empty or (not df_births.empty and not df_fpop.empty)) \
+        else pd.DataFrame(columns=["year", "area", "measure", "value"])
+    if _fert_all.empty:
+        st.info(
+            "**Fertility rates not loaded.** The app reads Nomis dataset **NM_207_1** (total "
+            "fertility rate, general fertility rate, crude birth rate and the age-specific rates) "
+            "for all London boroughs plus London and England. It looks for "
+            "`fertility_rates.csv` in `data/` first and calls the Nomis API if that is absent — so "
+            "this message means both routes were unavailable (most likely no network access from "
+            "the server). Saving the API response to `data/fertility_rates.csv` fixes it "
+            "permanently. As an alternative the app can derive the GFR and TFR itself if you add "
+            "`female_population_by_age.csv` alongside the births extract.")
+    else:
+        f1, f2 = st.columns(2)
+        meas_f = f1.selectbox("Rate", order_fertility_measures(_fert_all["measure"].unique()),
+                              key="fert_meas")
+        areas_f = sorted(_fert_all["area"].unique())
+        sel_f = f2.multiselect("Areas", areas_f,
+                               default=[a for a in areas_f if a in set(COMPARATORS)] or areas_f,
+                               key="fert_geos")
+        df_f = _fert_all[(_fert_all["measure"] == meas_f) & (_fert_all["area"].isin(sel_f))]
+        if df_f.empty:
+            st.info("No values for that rate and area selection.")
+        else:
+            chart_title(f"{meas_f} over time",
+                        "Westminster in strong colour · London and England dashed")
+            pal_f = borough_palette(sorted(df_f["area"].unique()))
+            fig_f = go.Figure()
+            for g in sorted(df_f["area"].unique(), key=lambda x: (x in AVERAGE_COLOURS, x)):
+                sg = df_f[df_f["area"] == g].sort_values("year")
+                fig_f.add_trace(go.Scatter(
+                    x=sg["year"], y=sg["value"], mode="lines+markers", name=g,
+                    line=dict(color=pal_f[g], **line_style(g)),
+                    marker=dict(size=8 if g == "Westminster" else 5),
+                    hovertemplate="<b>" + g + "</b><br>%{x}: %{y:.2f}<extra></extra>"))
+            if "fertility rate (TFR)" in meas_f:
+                fig_f.add_hline(y=2.08, line_dash="dot", line_color="#BBBBBB",
+                                annotation_text="replacement level (2.08)",
+                                annotation_position="top left",
+                                annotation_font=dict(size=10, color="#777777"))
+            fig_f.update_xaxes(title="Year")
+            fig_f.update_yaxes(title=meas_f)
+            show_chart(fig_f, "fertility_rates", "ONS births and population estimates")
+            legend_hint()
 
     # ── births by LSOA map ────────────────────────────────────────────────────
     st.markdown("**Births by Westminster LSOA, over time**")
