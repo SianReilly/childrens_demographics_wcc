@@ -349,23 +349,45 @@ def lsoa_change_map(geojson, df, code_col, name_col, value_col, year_col,
     fig.data[0].update(zmin=-lim, zmax=lim)
     return fig
 def choropleth(geojson, codes, z, names, label, colorscale, *,
-               wards=None, fmt=":.1f", zoom=12, center=None, height=540, reverse=False):
-    """Generic LSOA/ward/borough choropleth. `wards` (parallel list) shown on hover."""
+               wards=None, fmt=":.1f", zoom=12, center=None, height=540, reverse=False,
+               clip_percentile=97):
+    """Generic LSOA/ward/borough choropleth. `wards` (parallel list) shown on hover.
+
+    clip_percentile: caps the colour scale at this percentile of the data rather
+    than the raw max, so one or two outlier areas (common in small Census
+    cross-tabs) don't wash every other area out to the palest colour. Set to
+    None to use the raw min/max instead (e.g. for decile scales that are
+    already well-behaved, like IMD/IDACI 1-10)."""
     if center is None:
         center = {"lat": 51.515, "lon": -0.16}
+    z_arr = pd.to_numeric(pd.Series(z), errors="coerce")
     if wards is not None:
         custom = np.array(wards, dtype=object).reshape(-1, 1)
         hover = "<b>%{text}</b><br>Ward: %{customdata[0]}<br>" + label + ": %{z" + fmt + "}<extra></extra>"
     else:
         custom = None
         hover = "<b>%{text}</b><br>" + label + ": %{z" + fmt + "}<extra></extra>"
+    zmin_v = float(np.nanmin(z_arr)) if z_arr.notna().any() else 0
+    if clip_percentile is not None and z_arr.notna().sum() > 3:
+        zmax_v = float(np.nanpercentile(z_arr.dropna(), clip_percentile))
+        if zmax_v <= zmin_v:
+            zmax_v = float(np.nanmax(z_arr))
+    else:
+        zmax_v = float(np.nanmax(z_arr)) if z_arr.notna().any() else 1
     fig = go.Figure(go.Choroplethmap(
         geojson=geojson, locations=codes, z=z, text=names, customdata=custom,
         hovertemplate=hover, colorscale=colorscale, reversescale=reverse,
-        marker_opacity=0.78, marker_line_width=0.4, marker_line_color="white",
-        colorbar=dict(title=dict(text=label, font=dict(size=11)), thickness=14, len=0.62)))
+        zmin=zmin_v, zmax=zmax_v,
+        marker_opacity=0.85, marker_line_width=1.1, marker_line_color="#8A93A6",
+        colorbar=dict(title=dict(text=label, font=dict(size=11)), thickness=14, len=0.62,
+                      tickformat=fmt.lstrip(":"))))
     fig.update_layout(map_style="carto-positron", map_zoom=zoom, map_center=center,
                       margin=dict(l=0, r=0, t=0, b=0), height=height, paper_bgcolor="white")
+    if clip_percentile is not None and zmax_v < (float(np.nanmax(z_arr)) if z_arr.notna().any() else zmax_v):
+        fig.add_annotation(text=f"Colour scale capped at the {clip_percentile}th percentile "
+                                "to keep outlier areas from washing out the rest",
+                           xref="paper", yref="paper", x=0, y=1.0, showarrow=False,
+                           align="left", font=dict(size=9, color="#777777"))
     return fig
 
 # ══════════════════════════════════════════════════════════════════════════════
