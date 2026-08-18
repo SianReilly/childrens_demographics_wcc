@@ -2010,14 +2010,36 @@ with tab2:
             d = d[d["age"] == ag]
         d = d.groupby(["LSOA_CODE", "LSOA_NAME"], as_index=False)["count"].sum()
         d = add_ward(d)
-        chart_title(f"Where Westminster's children live — {ag.lower() if ag!='All 0–19' else 'ages 0–19'}, {sx.lower()}, {yr}",
-                    "ONS small-area mid-year estimates · darker = more children")
-        fig = choropleth(lsoa_gj, d["LSOA_CODE"], d["count"], d["LSOA_NAME"],
-                         "Children", [[0, WCC["light_blue"]], [1, FOCAL]],
-                         wards=d["Ward"].tolist(), fmt=":,")
-        show_chart(fig, "mye_lsoa_map", "ONS small-area MYEs, Westminster LSOAs")
-        st.caption(f"Total {('ages 0–19' if ag=='All 0–19' else ag)} ({sx.lower()}), {yr}: "
-                   f"**{int(d['count'].sum()):,}** children across {d['LSOA_CODE'].nunique()} LSOAs.")
+        view_mye = st.radio("View", ["Single year", "Change between two years"],
+                            horizontal=True, key="mye_lsoa_view")
+        if view_mye == "Single year":
+            chart_title(f"Where Westminster's children live - {ag.lower() if ag!='All 0-19' else 'ages 0-19'}, {sx.lower()}, {yr}",
+                        "ONS small-area mid-year estimates - darker = more children")
+            fig = choropleth(lsoa_gj, d["LSOA_CODE"], d["count"], d["LSOA_NAME"],
+                             "Children", [[0, WCC["light_blue"]], [1, FOCAL]],
+                             wards=d["Ward"].tolist(), fmt=":,")
+            show_chart(fig, "mye_lsoa_map", "ONS small-area MYEs, Westminster LSOAs")
+            st.caption(f"Total {('ages 0-19' if ag=='All 0-19' else ag)} ({sx.lower()}), {yr}: "
+                       f"**{int(d['count'].sum()):,}** children across {d['LSOA_CODE'].nunique()} LSOAs.")
+        else:
+            yrs_avail = sorted(df_mye_lsoa["year"].unique())
+            if len(yrs_avail) < 2:
+                st.info("Only one year of small-area data is loaded - nothing to compare yet.")
+            else:
+                cy0, cy1 = st.select_slider("Compare", options=yrs_avail,
+                                            value=(yrs_avail[0], yrs_avail[-1]), key="mye_lsoa_cmp")
+                dall = df_mye_lsoa[df_mye_lsoa["gender"] == sx].copy()
+                if ag != "All 0-19":
+                    dall = dall[dall["age"] == ag]
+                dall = dall.groupby(["LSOA_CODE", "LSOA_NAME", "year"], as_index=False)["count"].sum()
+                dall = add_ward(dall)
+                chart_title(f"Change in children by LSOA, mid-{cy0} to mid-{cy1}",
+                            "ONS small-area mid-year estimates - green = more children, red = fewer")
+                figch = lsoa_change_map(lsoa_gj, dall, "LSOA_CODE", "LSOA_NAME", "count", "year",
+                                        cy0, cy1, "Change in children",
+                                        wards=dall[dall["year"] == cy1]["Ward"])
+                if figch is not None:
+                    show_chart(figch, "mye_lsoa_change_map", "ONS small-area MYEs, Westminster LSOAs")
 
     st.divider()
     # ──────────────────────────────────────────────────────────────────────────
