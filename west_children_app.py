@@ -1734,6 +1734,11 @@ with st.sidebar:
         dot = FOCAL if b == "Westminster" else CONTEXT_BAR
         st.markdown(f"<span style='color:{dot}'>■</span> {b}", unsafe_allow_html=True)
     st.divider()
+    EXCLUDE_CITY_LONDON = st.checkbox("Exclude City of London from borough comparisons",
+                                      value=True,
+                                      help="City of London has only a few hundred residents and "
+                                           "skews any 'all 33 boroughs' ranking or average.")
+    st.divider()
     st.caption("**How to read the charts**")
     st.markdown("- **Westminster is always in strong colour**; comparators are muted.\n"
                 "- **Click a legend entry** to hide a line/bar; **double-click** to isolate one.\n"
