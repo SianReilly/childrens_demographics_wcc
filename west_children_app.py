@@ -3062,14 +3062,10 @@ with tab5:
             "and, for several groups, strongly negative. Because the overall roll is shrinking, read "
             "the **rate** alongside the **count** — a falling count can sit with a rising rate.")
         if df_sen_eth.empty:
-            st.info(
-                "**SEN-by-ethnicity data not loaded.** This is the *second* SEN export in the "
-                "data-sources note (SEN provision by LA and year by ethnicity) — the SEN file "
-                "currently in `data/` has no ethnicity column, so this section cannot be built from "
-                "it. Download that table from Explore Education Statistics and save it to `data/` as "
-                "`SEN_ethnicity_data-special-educational-needs-in-england.csv`. The loader detects "
-                "the ethnicity column automatically, so the exact EES column naming does not matter.")
+            st.info("SEN-by-ethnicity file not found - add `sen_fsm_eth_lang_new_.csv` to `data/`.")
         else:
+            if EXCLUDE_CITY_LONDON:
+                df_sen_eth = df_sen_eth[df_sen_eth["geo"] != "City of London"]
             e1, e2, e3 = st.columns(3)
             ph_opts = ["All phases"] + sorted(df_sen_eth["phase"].unique())
             ph_e = e1.selectbox("Phase", ph_opts,
