@@ -322,7 +322,24 @@ def _topojson_to_geojson(topo, object_name=None):
     feats = [{"type": "Feature", "properties": g.get("properties", {}), "geometry": geom(g)}
              for g in topo["objects"][object_name]["geometries"]]
     return {"type": "FeatureCollection", "features": feats}
-
+def lsoa_change_map(geojson, df, code_col, name_col, value_col, year_col,
+                    y0, y1, label, wards=None, fmt=":+.1f", height=540):
+    """Diverging choropleth of the change in `value_col` between two years,
+    matched on `code_col`. Returns None if either year has no data."""
+    a = df[df[year_col] == y0].set_index(code_col)[value_col]
+    b = df[df[year_col] == y1].set_index(code_col)[value_col]
+    both = pd.concat([a.rename("v0"), b.rename("v1")], axis=1).dropna()
+    if both.empty:
+        return None
+    both["delta"] = both["v1"] - both["v0"]
+    names = df.drop_duplicates(code_col).set_index(code_col)[name_col]
+    lim = float(np.nanmax(np.abs(both["delta"]))) or 1.0
+    fig = choropleth(geojson, both.index.tolist(), both["delta"].tolist(),
+                     names.reindex(both.index).tolist(), label,
+                     [[0, "#C0504D"], [0.5, "#F2F2F2"], [1, "#2E6E4E"]],
+                     wards=wards, fmt=fmt, height=height)
+    fig.data[0].update(zmin=-lim, zmax=lim)
+    return fig
 def choropleth(geojson, codes, z, names, label, colorscale, *,
                wards=None, fmt=":.1f", zoom=12, center=None, height=540, reverse=False):
     """Generic LSOA/ward/borough choropleth. `wards` (parallel list) shown on hover."""
