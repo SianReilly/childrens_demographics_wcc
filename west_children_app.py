@@ -3364,6 +3364,18 @@ with tab6:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab7:
     st.subheader("Why the child population is falling")
+    if not df_mye_la.empty:
+        _w = df_mye_la[(df_mye_la["area"] == "Westminster") & (df_mye_la["gender"] == "Total")]
+        _w = _w.groupby("year", as_index=False)["population"].sum().sort_values("year")
+        if len(_w) > 1:
+            _chg = (_w["population"].iloc[-1] / _w["population"].iloc[0] - 1) * 100
+            st.markdown(
+                f"<div class='ds-card'><b>In plain terms:</b> Westminster has "
+                f"{'gained' if _chg >= 0 else 'lost'} <b>{abs(_chg):.0f}%</b> of its resident "
+                f"children (0-19) since {int(_w['year'].iloc[0])}, driven by the three factors "
+                f"below - fewer births, families moving out faster than they move in, and the "
+                f"knock-on effect on school rolls. Use the year sliders in each chart to see the "
+                f"detail behind that headline number.</div>", unsafe_allow_html=True)
     st.markdown(
         "Three forces drive Westminster's shrinking child population: **fewer births**, "
         "**net domestic out-migration of families**, and the way those two feed through into "
