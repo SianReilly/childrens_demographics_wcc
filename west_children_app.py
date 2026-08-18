@@ -3514,16 +3514,31 @@ with tab7:
         st.info("LSOA boundary file not found — needed to draw the births map.")
     else:
         yrs_l = sorted(df_births_lsoa["year"].unique())
-        yr_l = st.select_slider("Year", options=yrs_l, value=yrs_l[-1], key="bl_year")
-        dl = df_births_lsoa[df_births_lsoa["year"] == yr_l].groupby(
-            ["LSOA_CODE", "LSOA_NAME"], as_index=False)["births"].sum()
-        dl = add_ward(dl)
-        chart_title(f"Live births by LSOA, {int(yr_l)}",
-                    "Darker = more births · hover for the ward · move the slider to see change over time")
-        figbl = choropleth(lsoa_gj, dl["LSOA_CODE"], dl["births"], dl["LSOA_NAME"],
-                           "Births", [[0, WCC["light_blue"]], [1, FOCAL]],
-                           wards=dl["Ward"].tolist(), fmt=":,")
-        show_chart(figbl, "births_lsoa_map", "ONS births by LSOA via Nomis")
+        view_bl = st.radio("View", ["Single year", "Change between two years"],
+                           horizontal=True, key="bl_view")
+        if view_bl == "Single year":
+            yr_l = st.select_slider("Year", options=yrs_l, value=yrs_l[-1], key="bl_year")
+            dl = df_births_lsoa[df_births_lsoa["year"] == yr_l].groupby(
+                ["LSOA_CODE", "LSOA_NAME"], as_index=False)["births"].sum()
+            dl = add_ward(dl)
+            chart_title(f"Live births by LSOA, {int(yr_l)}",
+                        "Darker = more births - hover for the ward")
+            figbl = choropleth(lsoa_gj, dl["LSOA_CODE"], dl["births"], dl["LSOA_NAME"],
+                               "Births", [[0, WCC["light_blue"]], [1, FOCAL]],
+                               wards=dl["Ward"].tolist(), fmt=":,")
+            show_chart(figbl, "births_lsoa_map", "ONS births by LSOA via Nomis")
+        elif len(yrs_l) < 2:
+            st.info("Only one year of LSOA births is loaded - nothing to compare yet.")
+        else:
+            cy0, cy1 = st.select_slider("Compare", options=yrs_l, value=(yrs_l[0], yrs_l[-1]), key="bl_cmp")
+            dlg = df_births_lsoa.groupby(["LSOA_CODE", "LSOA_NAME", "year"], as_index=False)["births"].sum()
+            dlg = add_ward(dlg)
+            chart_title(f"Change in births by LSOA, {int(cy0)} to {int(cy1)}",
+                        "Green = more births, red = fewer")
+            figblc = lsoa_change_map(lsoa_gj, dlg, "LSOA_CODE", "LSOA_NAME", "births", "year",
+                                     cy0, cy1, "Change in births", wards=dlg[dlg["year"] == cy1]["Ward"])
+            if figblc is not None:
+                show_chart(figblc, "births_lsoa_change_map", "ONS births by LSOA via Nomis")
 
     st.divider()
     # ── 2 · Domestic migration ───────────────────────────────────────────────
