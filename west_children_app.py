@@ -1991,6 +1991,15 @@ with tab1:
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
     st.subheader("Westminster LSOA demographic maps (Census 2021 & Mid-Year Estimates)")
+    if not df_mye_lsoa.empty:
+        _latest_yr = df_mye_lsoa["year"].max()
+        _n = int(df_mye_lsoa[(df_mye_lsoa["year"] == _latest_yr) &
+                             (df_mye_lsoa["gender"] == "Total")]["count"].sum())
+        st.markdown(
+            f"<div class='ds-card'><b>In plain terms:</b> as of mid-{int(_latest_yr)}, "
+            f"Westminster is home to an estimated <b>{_n:,}</b> children aged 0-19. The maps "
+            f"below show exactly where they live, and - further down - their ethnicity and "
+            f"household circumstances from the 2021 Census.</div>", unsafe_allow_html=True)
     st.markdown(
         "This section maps **how many children live where, by age and sex**, then adds the "
         "**ethnicity and household detail** only the Census can provide. Start with the **Mid-Year "
