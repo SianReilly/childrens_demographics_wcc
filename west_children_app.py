@@ -1174,80 +1174,110 @@ def load_pop_syoa():
     })
     return out.dropna(subset=["year", "age", "population"]).reset_index(drop=True)
 
+ETH_COL_MAP = {
+    "ethnicity_white_british": "White British",
+    "ethnicity_irish": "Irish",
+    "ethnicity_traveller_of_irish_heritage": "Traveller of Irish Heritage",
+    "ethnicity_any_other_white_background": "Any Other White Background",
+    "ethnicity_gypsy_roma": "Gypsy/Roma",
+    "ethnicity_white_and_black_caribbean": "White and Black Caribbean",
+    "ethnicity_white_and_black_african": "White and Black African",
+    "ethnicity_white_and_asian": "White and Asian",
+    "ethnicity_any_other_mixed_background": "Any Other Mixed Background",
+    "ethnicity_indian": "Indian",
+    "ethnicity_pakistani": "Pakistani",
+    "ethnicity_bangladeshi": "Bangladeshi",
+    "ethnicity_any_other_asian_background": "Any Other Asian Background",
+    "ethnicity_black_caribbean": "Black Caribbean",
+    "ethnicity_black_african": "Black African",
+    "ethnicity_any_other_black_background": "Any Other Black Background",
+    "ethnicity_chinese": "Chinese",
+    "ethnicity_any_other_ethnic_group": "Any Other Ethnic Group",
+    "ethnicity_unclassified": "Unclassified",
+}
+ETH_HIGH_MAP = {
+    "White British": "White", "Irish": "White", "Traveller of Irish Heritage": "White",
+    "Any Other White Background": "White", "Gypsy/Roma": "White",
+    "White and Black Caribbean": "Mixed", "White and Black African": "Mixed",
+    "White and Asian": "Mixed", "Any Other Mixed Background": "Mixed",
+    "Indian": "Asian", "Pakistani": "Asian", "Bangladeshi": "Asian",
+    "Any Other Asian Background": "Asian",
+    "Black Caribbean": "Black", "Black African": "Black", "Any Other Black Background": "Black",
+    "Chinese": "Other", "Any Other Ethnic Group": "Other", "Unclassified": "Unclassified",
+}
+
 @st.cache_data(show_spinner=False)
 def load_sen_ethnicity():
-    """DfE SEN provision by LA, year and ETHNICITY (the second SEN export in the
-    data-sources note). EES names the ethnicity column differently between releases
-    (`ethnicity`, `ethnicity_major`, `ethnicity_minor`, `characteristic`...), so the
-    column is detected rather than assumed. Returns tidy:
-    year, year_label, geo, phase, provision, ethnicity, count."""
-    COLS = ["year", "year_label", "geo", "phase", "provision", "ethnicity", "count"]
-    fn = None
-    for cand in ["SEN_ethnicity_data-special-educational-needs-in-england.csv",
-                 "sen_ethnicity.csv", "SEN_by_ethnicity.csv",
-                 "SEN_provision_by_ethnicity.csv"]:
-        if _exists(cand):
-            fn = cand
-            break
-    if fn is None:
-        # last resort: any SEN-looking csv that actually carries an ethnicity column
-        for d in _SEARCH_DIRS:
-            if not os.path.isdir(d):
-                continue
-            for f in sorted(glob.glob(os.path.join(d, "*.csv"))):
-                if "sen" not in os.path.basename(f).lower():
-                    continue
-                try:
-                    head = pd.read_csv(f, nrows=0)
-                except Exception:
-                    continue
-                if any("ethnic" in str(c).lower() for c in head.columns):
-                    fn = os.path.basename(f)
-                    break
-            if fn:
-                break
-    if fn is None:
+    """DfE SEN/FSM/language by ethnicity - London region + all 33 London boroughs.
+    Source file: sen_fsm_eth_lang_new_.csv (has la_name/new_la_code for LA rows,
+    region_name='London' for the regional row). Returns tidy LONG:
+    year, year_label, geo, phase, provision, ethnicity, eth_high, count."""
+    COLS = ["year", "year_label", "geo", "phase", "provision", "ethnicity", "eth_high", "count"]
+    fn = "sen_fsm_eth_lang_new_.csv"
+    if not _exists(fn):
         return pd.DataFrame(columns=COLS)
     df = pd.read_csv(_dp(fn), low_memory=False)
-    cols = list(df.columns)
-    def pick(*keys, exclude=()):
-        for c in cols:
-            lc = str(c).lower()
-            if all(k in lc for k in keys) and not any(x in lc for x in exclude):
-                return c
-        return None
-    # prefer the broad ethnic grouping over the detailed one when both exist
-    c_eth = (pick("ethnic", "major") or pick("ethnicity") or pick("ethnic", "group")
-             or pick("ethnic", "minor") or pick("ethnic"))
-    if c_eth is None:
-        return pd.DataFrame(columns=COLS)
-    c_count = (pick("pupil_count") or pick("headcount") or pick("count", exclude=("country",))
-               or pick("number"))
-    if c_count is None:
-        return pd.DataFrame(columns=COLS)
-    c_lvl, c_la, c_reg = pick("geographic_level"), pick("la_name"), pick("region_name")
-    c_phase = pick("phase") or pick("school_type")
-    c_prov = pick("sen_provision") or pick("provision")
-    c_time = pick("time_period")
-    if c_lvl is not None:
-        lvl = df[c_lvl].astype(str).str.lower()
-        geo = np.where(lvl == "national", ENGLAND,
-              np.where(lvl == "regional", df[c_reg].astype(str) if c_reg else LONDON,
-                       df[c_la].astype(str) if c_la else "Unknown"))
-    else:
-        geo = df[c_la].astype(str) if c_la else "Unknown"
-    out = pd.DataFrame({
-        "year": df[c_time].map(_year_start) if c_time is not None else np.nan,
-        "year_label": df[c_time].map(_academic_year_label) if c_time is not None else "",
+    lvl = df["geographic_level"].astype(str).str.lower()
+    geo = np.where(lvl == "regional", df["region_name"].astype(str), df["la_name"].astype(str))
+    base = pd.DataFrame({
+        "year": df["time_period"].map(_year_start),
+        "year_label": df["time_period"].map(_academic_year_label),
         "geo": pd.Series(geo).map(_norm_la),
-        "phase": df[c_phase].astype(str).str.strip() if c_phase else "All phases",
-        "provision": df[c_prov].astype(str).str.strip() if c_prov else "Total",
-        "ethnicity": df[c_eth].astype(str).str.strip(),
-        "count": _num(df[c_count]),
+        "phase": df["phase_type_grouping"].astype(str).str.strip(),
+        "provision": df["sen_status"].astype(str).str.strip(),
+        "sen_need": df["sen_primary_need"].astype(str).str.strip(),
     })
+    eth_cols = [c for c in df.columns if c in ETH_COL_MAP]
+    frames = []
+    for c in eth_cols:
+        f = base.copy()
+        f["ethnicity"] = ETH_COL_MAP[c]
+        f["eth_high"] = ETH_HIGH_MAP.get(ETH_COL_MAP[c], "Other")
+        f["count"] = _num(df[c])
+        frames.append(f)
+    out = pd.concat(frames, ignore_index=True)
+    # collapse across SEN primary need so counts aren't multiplied across need types
+    out = out[out["sen_need"] == "Total"].drop(columns=["sen_need"])
     out = out[out["geo"].astype(str).str.lower() != "nan"]
-    out = out[~out["ethnicity"].str.lower().isin(["nan", ""])]
-    return out.dropna(subset=["count"]).reset_index(drop=True)
+    return out.dropna(subset=["count"]).reset_index(drop=True)[COLS]
+
+@st.cache_data(show_spinner=False)
+def load_fsm_language():
+    """FSM eligibility and language (English/other) from the same source file,
+    for the FSM/language callouts alongside the SEN-by-ethnicity chart.
+    Returns LONG: year, year_label, geo, phase, provision, metric, count."""
+    COLS = ["year", "year_label", "geo", "phase", "provision", "metric", "count"]
+    fn = "sen_fsm_eth_lang_new_.csv"
+    if not _exists(fn):
+        return pd.DataFrame(columns=COLS)
+    df = pd.read_csv(_dp(fn), low_memory=False)
+    lvl = df["geographic_level"].astype(str).str.lower()
+    geo = np.where(lvl == "regional", df["region_name"].astype(str), df["la_name"].astype(str))
+    base = pd.DataFrame({
+        "year": df["time_period"].map(_year_start),
+        "year_label": df["time_period"].map(_academic_year_label),
+        "geo": pd.Series(geo).map(_norm_la),
+        "phase": df["phase_type_grouping"].astype(str).str.strip(),
+        "provision": df["sen_status"].astype(str).str.strip(),
+        "sen_need": df["sen_primary_need"].astype(str).str.strip(),
+    })
+    METRIC_MAP = {"fsm_eligible": "FSM eligible", "fsm_not_eligible": "Not FSM eligible",
+                  "language_english": "English as first language",
+                  "language_other": "Other first language",
+                  "language_unclassified": "Language unclassified"}
+    frames = []
+    for c, label in METRIC_MAP.items():
+        if c in df.columns:
+            f = base.copy()
+            f["metric"] = label
+            f["count"] = _num(df[c])
+            frames.append(f)
+    out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=COLS)
+    if out.empty:
+        return out
+    out = out[out["sen_need"] == "Total"].drop(columns=["sen_need"])
+    out = out[out["geo"].astype(str).str.lower() != "nan"]
+    return out.dropna(subset=["count"]).reset_index(drop=True)[COLS]
 
 NOMIS_FERTILITY = (
     "https://www.nomisweb.co.uk/api/v01/dataset/NM_207_1.data.csv?geography="
