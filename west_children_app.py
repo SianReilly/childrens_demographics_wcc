@@ -3,14 +3,14 @@
 # pip install streamlit plotly pandas numpy openpyxl python-pptx kaleido topojson pyproj
 #
 # Data sources
-# 1. ONS Mid-Year Population Estimates (MYEs) — LA 1991–2024 (gender) & LSOA 2022–2024
-# 2. IoD 2025 — Index of Multiple Deprivation (IMD) composite rank
-# 3. IoD 2025 — Supplementary Indices: IDACI (children) & IDAOPI (older people)
-# 4. EGDI — Ethnic Group Deprivation Index — Lloyd et al. 2023 / gedi.ac.uk
-# 5. Census 2021 — RM006 (household type), RM012 (HRP ethnicity × age), RM033 (child ethnicity × sex)
+# 1. ONS Mid-Year Population Estimates (MYEs) - LA 1991–2024 (gender) & LSOA 2022–2024
+# 2. IoD 2025 - Index of Multiple Deprivation (IMD) composite rank
+# 3. IoD 2025 - Supplementary Indices: IDACI (children) & IDAOPI (older people)
+# 4. EGDI - Ethnic Group Deprivation Index - Lloyd et al. 2023 / gedi.ac.uk
+# 5. Census 2021 - RM006 (household type), RM012 (HRP ethnicity × age), RM033 (child ethnicity × sex)
 # 6. DWP Children in Low Income Families (AHC Relative) FYE 2024–2025
-# 7. DfE Key Stage 4 attainment — Explore Education Statistics
-# 8. Westminster ward + London borough boundaries — ONS / London Datastore
+# 7. DfE Key Stage 4 attainment - Explore Education Statistics
+# 8. Westminster ward + London borough boundaries - ONS / London Datastore
 # ──────────────────────────────────────────────────────────────────────────────
 
 import os, io, json, copy, glob, re, warnings
@@ -41,7 +41,7 @@ _ALIASES = {
         "ONS_LSOA_2021 (1).json", "ONS_LSOA_2021__1_.json", "ONS_LSOA_2021_(1).json"],
     "Ward LSOA Lookup.xlsx": [
         "Ward LSOA Lookup.xlsx", "Ward_LSOA_Lookup.xlsx", "Ward LSOA Lookup .xlsx"],
-    # census tables — accept whatever RM0xx… variant is actually committed
+    # census tables - accept whatever RM0xx… variant is actually committed
     "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx": [
         "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx",
         "RM012_dependent_children_by_HRP_ethnic_group_by_age.xlsx", "RM012.xlsx"],
@@ -64,7 +64,7 @@ def _dp(name):
             p = os.path.join(d, a)
             if os.path.exists(p):
                 return p
-    # 2) fuzzy fallback — match the leading token (e.g. 'RM012') or the full stem
+    # 2) fuzzy fallback - match the leading token (e.g. 'RM012') or the full stem
     ext = os.path.splitext(name)[1].lower()
     want_keys = {_stem_key(a) for a in aliases}
     lead = re.match(r"[A-Za-z]+\d+", name)          # e.g. 'RM012'
@@ -93,7 +93,7 @@ WCC = {
 
 # Focal vs context. Westminster (the story) is in strong colour; everyone else
 # is a pale/muted accent so the eye lands on Westminster. (Economist principle.)
-FOCAL        = "#0B2265"   # Westminster — strong WCC blue
+FOCAL        = "#0B2265"   # Westminster - strong WCC blue
 FOCAL_ALT    = "#0C35FA"   # secondary strong (used for ward top-3 etc.)
 CONTEXT_BAR  = "#C8D0DE"   # pale grey-blue for non-focal bars
 CONTEXT_LINE = "#AAB4C6"   # pale grey-blue for non-focal lines
@@ -124,7 +124,7 @@ BOROUGH_COLOURS = {
 # spare muted hues if a comparator outside the CIPFA six ever appears
 _EXTRA_MUTED = ["#B08E6A", "#7FB0A0", "#A97BA5", "#6E9BB3", "#C0906B", "#8AA98A"]
 
-# Benchmark averages — deliberately neutral greys, drawn dashed, so they read as
+# Benchmark averages - deliberately neutral greys, drawn dashed, so they read as
 # "context lines" rather than as another borough.
 LONDON, ENGLAND = "London", "England"
 AVERAGE_COLOURS = {LONDON: "#7A8390", ENGLAND: "#4A5058"}
@@ -216,7 +216,7 @@ def chart_title(title, subtitle=None):
 def legend_hint(extra=""):
     st.markdown(
         "<div class='howto'>💡 <b>Tip:</b> click a name in the legend to hide it, "
-        "or double-click a name to isolate it — handy for dropping comparators "
+        "or double-click a name to isolate it - handy for dropping comparators "
         f"(e.g. Camden, Hammersmith &amp; Fulham) to focus on Westminster. {extra}</div>",
         unsafe_allow_html=True)
 
@@ -244,7 +244,7 @@ def apply_style(fig, source="", height=None):
 
 def png_button(fig, key, w=1200, h=700):
     """PNG download (slide-ready). Falls back to the chart camera icon if the
-    server has no Chrome/kaleido. HTML is never offered — it can't drop into PPT."""
+    server has no Chrome/kaleido. HTML is never offered - it can't drop into PPT."""
     try:
         png = fig.to_image(format="png", width=w, height=h, scale=2)
         st.download_button("⬇ Download chart (PNG)", data=png,
@@ -282,7 +282,7 @@ def _reproject_osgb_to_wgs84(geojson):
     try:
         from pyproj import Transformer
     except ImportError:
-        st.warning("pyproj not installed — cannot reproject OSGB coordinates. Add 'pyproj' to requirements.txt.")
+        st.warning("pyproj not installed - cannot reproject OSGB coordinates. Add 'pyproj' to requirements.txt.")
         return geojson
     tr = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
     out = copy.deepcopy(geojson)
@@ -369,7 +369,7 @@ def choropleth(geojson, codes, z, names, label, colorscale, *,
     return fig
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DATA LOADERS — NEW uploaded datasets (parsing validated against the real files)
+# DATA LOADERS - NEW uploaded datasets (parsing validated against the real files)
 # ══════════════════════════════════════════════════════════════════════════════
 MYE_AGE_ORDER = ["0-4", "5-9", "10-14", "15-19"]
 
@@ -522,7 +522,7 @@ def coverage_weighted_ward(lookup, lsoa_df, value_col, code_col="LSOA_CODE"):
     return g[["Ward", value_col]]
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DATA LOADERS — existing datasets (resolved from data/ folder; degrade if absent)
+# DATA LOADERS - existing datasets (resolved from data/ folder; degrade if absent)
 # ══════════════════════════════════════════════════════════════════════════════
 def _pct(s):
     v = pd.to_numeric(s.astype(str).str.replace("%", "", regex=False)
@@ -536,7 +536,7 @@ def _num(s):
 
 @st.cache_data(show_spinner=False)
 def load_low_income_la():
-    """DWP CiLIF — Table 2: children (0–15) in relative low income (AHC), by LA, FYE24–25."""
+    """DWP CiLIF - Table 2: children (0–15) in relative low income (AHC), by LA, FYE24–25."""
     if not _exists("2_AHC_Relative_LA.csv"):
         return pd.DataFrame(columns=["LA", "Area_Code", "N_2024", "N_2025", "Pct_2024", "Pct_2025"])
     df = pd.read_csv(_dp("2_AHC_Relative_LA.csv"), header=8,
@@ -551,7 +551,7 @@ def load_low_income_la():
 
 @st.cache_data(show_spinner=False)
 def load_low_income_ward():
-    """DWP CiLIF — Table 4: children (0–15) in relative low income (AHC), by ward, FYE24–25."""
+    """DWP CiLIF - Table 4: children (0–15) in relative low income (AHC), by ward, FYE24–25."""
     if not _exists("4_AHC_Relative_Ward.csv"):
         return pd.DataFrame(columns=["LA", "LA_Code", "Ward", "Ward_Code", "N_2024", "N_2025",
                                      "Pct_2024", "Pct_2025", "LA_filled"])
@@ -637,7 +637,7 @@ def _read_stacked_census(fn, block_key, age_map, cat_clean=None, max_hdr_scan=8)
     cell contains `block_key` (e.g. 'household type'); that row's second cell is the
     category value (e.g. 'One-person household'). A header row inside the block holds
     the age-band labels across columns; the rows beneath are LSOA × counts. Blocks are
-    stacked down the sheet (this is the shape RM006 uses — a household type every
+    stacked down the sheet (this is the shape RM006 uses - a household type every
     ~136 rows). Returns a list of (LSOA_CODE, LSOA_NAME, category, age, count) or None
     if the sheet is not in this stacked shape (so the caller can try a wide parser)."""
     raw = pd.read_excel(_dp(fn), header=None)
@@ -688,7 +688,7 @@ def _read_stacked_census(fn, block_key, age_map, cat_clean=None, max_hdr_scan=8)
 
 @st.cache_data(show_spinner=False)
 def load_rm006():
-    """RM006 — Age of youngest dependent child by household type (Census 2021).
+    """RM006 - Age of youngest dependent child by household type (Census 2021).
     Returns LONG: LSOA_CODE, LSOA_NAME, household_type, youngest_age, count.
     Handles a 2-row (household type / age) Nomis header; falls back to a flat
     age-only export tagged household_type='All households'."""
@@ -700,7 +700,7 @@ def load_rm006():
     AGE_MAP = {"no dependent": "No dependent children", "10 to 15": "10 to 15",
                "16 to 18": "16 to 18", "5 to 9": "5 to 9", "0 to 4": "0 to 4",
                "10-15": "10 to 15", "16-18": "16 to 18", "5-9": "5 to 9", "0-4": "0 to 4"}
-    # PRIMARY: the real RM006 shape — a stacked block per household type
+    # PRIMARY: the real RM006 shape - a stacked block per household type
     try:
         recs = _read_stacked_census(fn, "household type", AGE_MAP)
     except Exception:
@@ -762,7 +762,7 @@ def load_rm006():
 
 @st.cache_data(show_spinner=False)
 def load_rm012():
-    """RM012 — Dependent children by ethnic group of Household Reference Person (HRP)
+    """RM012 - Dependent children by ethnic group of Household Reference Person (HRP)
     by age (Census 2021). Returns LONG: LSOA_CODE, LSOA_NAME, hrp_group, age_band, count.
     HRP groups: Asian / Black / Mixed / White / Other. Age bands: 0-2, 3-4, 5-11, 12-15, 16-18."""
     fn = "RM012_dependent_children_by_ethnic_group_of_HRP.xlsx"
@@ -816,7 +816,7 @@ def load_rm012():
 
 @st.cache_data(show_spinner=False)
 def load_rm033():
-    """RM033 — Ethnic group of the DEPENDENT CHILD by sex (Census 2021).
+    """RM033 - Ethnic group of the DEPENDENT CHILD by sex (Census 2021).
     Returns LONG: LSOA_CODE, LSOA_NAME, sex, eth_detail, eth_high, count.
     eth_detail keeps Nomis sub-categories (e.g. 'Bangladeshi'); eth_high rolls them
     up to White / Asian / Black / Mixed / Other / Arab."""
@@ -922,7 +922,7 @@ def load_borough_geojson():
     return _inject_id(gj, id_prop)
 
 # ══════════════════════════════════════════════════════════════════════════════
-# NEW DATASETS — children & schools, population change, childcare costs
+# NEW DATASETS - children & schools, population change, childcare costs
 # Sources: DfE Explore Education Statistics (pupils, SEN, childcare provider survey),
 # ONS internal-migration detailed estimates, ONS/Nomis births.
 # Every loader degrades to an empty frame so a missing file only hides its own charts.
@@ -949,7 +949,7 @@ def _fetch_csv(url, timeout=25):
 
 @st.cache_data(show_spinner=False)
 def load_pupils():
-    """DfE 'School pupils and their characteristics' — headcount/FTE by LA and phase.
+    """DfE 'School pupils and their characteristics' - headcount/FTE by LA and phase.
     File covers Westminster + its five neighbours only (no London/England rows);
     London and England totals come from the SEN file instead (see load_sen)."""
     fn = "data-school-pupils-and-their-characteristics.csv"
@@ -1035,7 +1035,7 @@ def load_cross_border():
 
 @st.cache_data(show_spinner=False)
 def load_childcare_costs():
-    """DfE Childcare and early years provider survey — hourly fees by London LA,
+    """DfE Childcare and early years provider survey - hourly fees by London LA,
     for 2-year-olds and 3-and-4-year-olds."""
     fn = "costs_data-childcare-and-early-years-provider-survey.csv"
     COLS = ["year", "la", "la_code", "child_age", "mean_fee", "median_fee"]
@@ -1332,7 +1332,7 @@ def _age_band_bounds(label):
 @st.cache_data(show_spinner=False)
 def load_fertility_rates():
     """Fertility and birth rates (TFR, GFR, crude birth rate, age-specific rates) for
-    London boroughs, London and England — Nomis dataset NM_207_1, or a local CSV.
+    London boroughs, London and England - Nomis dataset NM_207_1, or a local CSV.
 
     Nomis CSVs carry BOTH a numeric code column and a text label column for every
     dimension (`MEASURE` and `MEASURE_NAME`, `GEOGRAPHY` and `GEOGRAPHY_NAME`), plus an
@@ -1378,7 +1378,7 @@ def load_fertility_rates():
         "measure": (df[c_meas].astype(str).str.strip() if c_meas is not None else "Rate"),
         "value": _num(df[c_val]),
     })
-    # a numeric 'measure' means we picked the code column, not the label — unusable
+    # a numeric 'measure' means we picked the code column, not the label - unusable
     if out["measure"].str.fullmatch(r"\d+(\.0)?").fillna(False).all():
         out["measure"] = "Rate"
     return out.dropna(subset=["year", "value"]).reset_index(drop=True)
@@ -1486,7 +1486,7 @@ PHASE_AGES = {"Primary": (4, 10), "Secondary": (11, 16)}
 def load_mye_syoa_wcc():
     """Westminster resident population by SINGLE year of age, from the small-area MYE
     workbook (which holds F0..F90 / M0..M90 columns). Covers mid-2022 to mid-2024 and
-    Westminster only — used as a fallback for the independent-school calculation when
+    Westminster only - used as a fallback for the independent-school calculation when
     the Nomis single-year-of-age extract (all six boroughs) has not been supplied."""
     fn = "Small_Area_Output_Area_Mid_Year_Estimated.xlsx"
     COLS = ["year", "la", "age", "population"]
@@ -1648,7 +1648,7 @@ def index_to_baseline(d, value_col="count", base_year=None, mode="pct_change"):
     return out.drop(columns=["_base"])
 
 # ══════════════════════════════════════════════════════════════════════════════
-# LOAD EVERYTHING  — every loader is isolated so one missing/corrupt file can
+# LOAD EVERYTHING  - every loader is isolated so one missing/corrupt file can
 # never crash the whole dashboard; it just disables the sections that need it.
 # ══════════════════════════════════════════════════════════════════════════════
 def _diagnose_file(name):
@@ -1663,7 +1663,7 @@ def _diagnose_file(name):
         return f"`{name}` could not be opened."
     if head.startswith(b"version https://git-lfs"):
         return (f"`{name}` is only a **Git LFS pointer** on the server, not the real "
-                "spreadsheet — the binary wasn't pulled at deploy time. Commit the actual "
+                "spreadsheet - the binary wasn't pulled at deploy time. Commit the actual "
                 "file (or fetch LFS objects), then redeploy.")
     if name.lower().endswith((".xlsx", ".xlsm")) and head[:2] != b"PK":
         return (f"`{name}` on the server is **not a valid .xlsx** (its bytes don't start with "
@@ -1725,9 +1725,9 @@ with st.spinner("Loading datasets…"):
 def add_ward(df, code_col="LSOA_CODE"):
     """Attach the LSOA's (dominant) ward as a 'Ward' column + a labelled name."""
     out = df.copy()
-    out["Ward"] = out[code_col].map(lsoa_to_ward).fillna("—")
+    out["Ward"] = out[code_col].map(lsoa_to_ward).fillna("-")
     if "LSOA_NAME" in out.columns:
-        out["LSOA_labelled"] = np.where(out["Ward"] != "—",
+        out["LSOA_labelled"] = np.where(out["Ward"] != "-",
                                         out["LSOA_NAME"] + " · " + out["Ward"], out["LSOA_NAME"])
     return out
 
@@ -1754,18 +1754,18 @@ with st.sidebar:
     st.divider()
     st.caption("**Data sources**")
     st.markdown("[ONS Mid-Year Population Estimates](https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates)")
-    st.markdown("[IoD 2025 — IMD & supplementary indices](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025)")
+    st.markdown("[IoD 2025 - IMD & supplementary indices](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025)")
     st.markdown("[DWP Children in Low Income Families](https://www.gov.uk/government/statistics/children-in-low-income-families-local-area-statistics-2022-to-2025)")
-    st.markdown("[DfE Key Stage 4 — Explore Education Statistics](https://explore-education-statistics.service.gov.uk/)")
-    st.markdown("[EGDI — gedi.ac.uk](https://gedi.ac.uk/egdi/)")
-    st.markdown("[Census 2021 — ONS Nomis](https://www.nomisweb.co.uk/)")
+    st.markdown("[DfE Key Stage 4 - Explore Education Statistics](https://explore-education-statistics.service.gov.uk/)")
+    st.markdown("[EGDI - gedi.ac.uk](https://gedi.ac.uk/egdi/)")
+    st.markdown("[Census 2021 - ONS Nomis](https://www.nomisweb.co.uk/)")
 
 # ── HEADER + METRICS ──────────────────────────────────────────────────────────
 st.title("🏙️ WCC Children's Demographics")
-st.markdown("Population, child poverty, attainment, ethnicity and deprivation — "
+st.markdown("Population, child poverty, attainment, ethnicity and deprivation - "
             "benchmarked against CIPFA statistical neighbours, with Westminster always in focus.")
 
-# child population now (MYE LSOA, validated) — most up-to-date figure
+# child population now (MYE LSOA, validated) - most up-to-date figure
 child_now = np.nan
 if not df_mye_lsoa.empty:
     child_now = int(df_mye_lsoa[(df_mye_lsoa["year"] == df_mye_lsoa["year"].max()) &
@@ -1780,19 +1780,19 @@ wcc_li = wcc_li.iloc[0] if len(wcc_li) else pd.Series({"N_2025": np.nan, "Pct_20
 
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Children aged 0–19 (MYE, mid-2024)",
-          f"{child_now:,}" if not np.isnan(child_now) else "—",
+          f"{child_now:,}" if not np.isnan(child_now) else "-",
           help="Latest ONS mid-year estimate, Westminster, ages 0–19. The most up-to-date child count.")
 c2.metric("Children in low income (FYE 2025)",
-          f"{int(wcc_li['N_2025']):,}" if pd.notna(wcc_li["N_2025"]) else "—",
+          f"{int(wcc_li['N_2025']):,}" if pd.notna(wcc_li["N_2025"]) else "-",
           delta=(f"{wcc_li['Pct_2025'] - wcc_li['Pct_2024']:+.1f}pp vs FYE24" if pd.notna(wcc_li["Pct_2024"]) else None),
           delta_color="inverse",
           help="DWP AHC relative low income, children 0–15. Green ↓ = improvement.")
-c3.metric("LSOAs in worst 10% — child income (IDACI 2025)",
-          f"{idaci_share}%" if not np.isnan(idaci_share) else "—",
+c3.metric("LSOAs in worst 10% - child income (IDACI 2025)",
+          f"{idaci_share}%" if not np.isnan(idaci_share) else "-",
           help="Share of Westminster's 123 LSOAs in the most deprived national IDACI decile. "
                "Has almost doubled from ~11% (2019) to ~21% (2025).")
-c4.metric("LSOAs in worst 10% — overall (IMD 2025)",
-          f"{imd_share}%" if not np.isnan(imd_share) else "—",
+c4.metric("LSOAs in worst 10% - overall (IMD 2025)",
+          f"{imd_share}%" if not np.isnan(imd_share) else "-",
           help="Share of Westminster LSOAs in the most deprived national IMD decile. "
                "IDACI (child-specific) reveals far more deprivation than the overall IMD.")
 st.divider()
@@ -1810,7 +1810,7 @@ tab0, tab7, tab2, tab1, tab5, tab6, tab3, tab4 = st.tabs([
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 0 — OVERVIEW / LANDING
+# TAB 0 - OVERVIEW / LANDING
 # ══════════════════════════════════════════════════════════════════════════════
 with tab0:
     st.subheader("Datasets - reliability and relevance")
@@ -1821,42 +1821,42 @@ with tab0:
 
     st.markdown("##### The datasets at a glance")
     st.markdown(f"""
-<div class="ds-card"><b>① Mid-Year Estimates (MYEs) — start here.</b><br>
+<div class="ds-card"><b>① Mid-Year Estimates (MYEs) - start here.</b><br>
 ONS rebuilds the population every year from the Census, births, deaths and migration. They are the
 <b>most up-to-date</b> count of children by age (0–4, 5–9, 10–14, 15–19) and sex, available right down
 to LSOA level (mid-2022 → mid-2024) and back to 1991 at borough level. <b>Use MYEs as the default for
 "how many children, what age, where, and how is that changing".</b> Their limitation: they carry
 <b>no ethnicity and no household detail</b>.</div>
 
-<div class="ds-card"><b>② Census 2021 — for the detail MYEs can't give.</b><br>
+<div class="ds-card"><b>② Census 2021 - for the detail MYEs can't give.</b><br>
 A full count once a decade. It is now a few years old, but it is the <b>only</b> source with the
 granularity of <b>ethnicity</b> and <b>household type</b>. We include three Census tables:
-<i>RM033</i> (the child's own ethnicity — the best ethnicity source), <i>RM012</i> (children by the
+<i>RM033</i> (the child's own ethnicity - the best ethnicity source), <i>RM012</i> (children by the
 ethnicity of the household reference person, by age) and <i>RM006</i> (age of the youngest child by
 household type). Use the Census when the question is specifically about ethnicity or household
 structure; otherwise prefer the MYEs.</div>
 
-<div class="ds-card"><b>③ Index of Multiple Deprivation (IMD 2025) + IDACI — the deprivation backbone.</b><br>
+<div class="ds-card"><b>③ Index of Multiple Deprivation (IMD 2025) + IDACI - the deprivation backbone.</b><br>
 The IMD is the standard <b>overall</b> measure of neighbourhood deprivation. Its child-specific
 supplementary index, <b>IDACI</b> (Income Deprivation Affecting Children), is the <b>first go-to for
-child poverty geography</b> — it measures the share of children in income-deprived families and, the
+child poverty geography</b> - it measures the share of children in income-deprived families and, the
 IMD's 2025 update includes after-housing-costs, exposing hidden child poverty in high-cost areas like Westminster.
 <b>Prefer the IMD alongside IDACI.</b></div>
 
-<div class="ds-card"><b>④ Ethnic Group Deprivation Index (EGDI) — the ethnicity dimension of deprivation.</b><br>
+<div class="ds-card"><b>④ Ethnic Group Deprivation Index (EGDI) - the ethnicity dimension of deprivation.</b><br>
 IMD and IDACI tell you <i>where</i> deprivation sits; they cannot tell you whether it falls
 <b>unevenly across ethnic groups</b> within the same neighbourhood. The EGDI adds exactly that lens.
 Reading it alongside IDACI and IMD turns "this area is deprived" into "and deprivation here is borne
-disproportionately by particular ethnic groups" — essential for targeting support equitably.</div>
+disproportionately by particular ethnic groups" - essential for targeting support equitably.</div>
 
-<div class="ds-card"><b>⑤ DfE schools data (pupils, SEN, cross-border) — the school-age reality.</b><br>
-Where the MYEs count <i>resident</i> children, the DfE data counts <b>pupils on rolls</b> — and the two
+<div class="ds-card"><b>⑤ DfE schools data (pupils, SEN, cross-border) - the school-age reality.</b><br>
+Where the MYEs count <i>resident</i> children, the DfE data counts <b>pupils on rolls</b> - and the two
 diverge sharply in Westminster because so many children are educated privately or outside the borough.
 The SEN publication is doubly useful: alongside SEN counts it reports the <b>total headcount</b> for
 every phase nationally, regionally and for all 33 London boroughs, which is what lets us benchmark
 Westminster against the <b>London and England averages</b>.</div>
 
-<div class="ds-card"><b>⑥ Births, internal migration and childcare costs — the drivers.</b><br>
+<div class="ds-card"><b>⑥ Births, internal migration and childcare costs - the drivers.</b><br>
 Births set the size of each future school cohort; <b>internal migration</b> shows families leaving
 (and students arriving); <b>childcare costs</b> are one of the pressures behind that movement. Read
 together they explain <i>why</i> the child population is falling, rather than just showing that it is.</div>
@@ -1879,14 +1879,14 @@ together they explain <i>why</i> the child population is falling, rather than ju
     legend_hint()
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — CHILD POVERTY (DWP Children in Low Income Families)
+# TAB 1 - CHILD POVERTY (DWP Children in Low Income Families)
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    st.subheader("Children in low income families — Westminster vs CIPFA neighbours")
+    st.subheader("Children in low income families - Westminster vs CIPFA neighbours")
     st.markdown(
         "**Dataset:** DWP *Children in Low Income Families: local area statistics, 2022–2025*. "
         "The figures here use the **After-Housing-Costs (AHC) relative** measure for children aged "
-        "**0–15** — the more meaningful measure in London because it accounts for very high housing "
+        "**0–15** - the more meaningful measure in London because it accounts for very high housing "
         "costs. Two tables are used: **Table 2** (Local Authority) for the borough comparison and "
         "**Table 4** (Ward) for the within-Westminster breakdown. "
         "[Source & definitions](https://www.gov.uk/government/statistics/children-in-low-income-families-local-area-statistics-2022-to-2025).")
@@ -1932,13 +1932,13 @@ with tab1:
 
         # ── CIPFA choropleth
         st.divider()
-        st.subheader("Geographic context — CIPFA statistical neighbours")
+        st.subheader("Geographic context - CIPFA statistical neighbours")
         st.markdown(
             "CIPFA *statistical neighbours* are the local authorities most similar to Westminster on "
             "socio-economic characteristics, so they are the fairest comparators. The map shades each "
             "neighbour by its child-poverty rate (AHC relative, FYE 2025); Westminster is outlined in "
-            "the centre. Reading Westminster against this group — rather than against England as a whole "
-            "— is the basis for the benchmarking throughout this dashboard.")
+            "the centre. Reading Westminster against this group - rather than against England as a whole "
+            "- is the basis for the benchmarking throughout this dashboard.")
         if borough_gj is not None:
             chart_title("Child poverty across Westminster's CIPFA neighbours",
                         "% of children (0–15) in relative low income (AHC) · FYE 2025")
@@ -1951,13 +1951,13 @@ with tab1:
             fig_m.data[0].hovertemplate = "<b>%{text}</b><br>% in low income: %{z:.1f}%<extra></extra>"
             show_chart(fig_m, "cipfa_map", "DWP CiLIF, Table 2 (LA), FYE 2025")
         else:
-            st.info("Borough boundary file (`Borough_London_LL84.json`) not found — borough map skipped.")
+            st.info("Borough boundary file (`Borough_London_LL84.json`) not found - borough map skipped.")
 
     # ── Ward level
     st.divider()
-    st.subheader("Within Westminster — ward-level child poverty (FYE 2025)")
+    st.subheader("Within Westminster - ward-level child poverty (FYE 2025)")
     st.markdown(
-        "**Dataset:** DWP *Children in Low Income Families*, **Table 4 (Ward)** — children aged 0–15, "
+        "**Dataset:** DWP *Children in Low Income Families*, **Table 4 (Ward)** - children aged 0–15, "
         "AHC relative measure. Child poverty is highly concentrated: the north-west of the borough "
         "carries far higher rates than the centre and south.")
     if df_li_ward.empty:
@@ -1978,7 +1978,7 @@ with tab1:
         fig3.update_yaxes(title="")
         show_chart(fig3, "ward_poverty", "DWP CiLIF, Table 4 (Ward), FYE 2025")
         st.success(f"💡 **Recommendation:** {top3[0]}, {top3[1]} and {top3[2]} should be the priority "
-                   "wards for child-poverty interventions — the same north-west cluster that the IDACI "
+                   "wards for child-poverty interventions - the same north-west cluster that the IDACI "
                    "and IMD maps (Deprivation tab) independently flag as most deprived.")
 
     source_line("Child-poverty figures use the AHC (after-housing-costs) relative measure, children "
@@ -1986,7 +1986,7 @@ with tab1:
                 "Source: DWP/HMRC Children in Low Income Families local area statistics, 2022–2025.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — POPULATION & DEMOGRAPHICS
+# TAB 2 - POPULATION & DEMOGRAPHICS
 # Order (per guidance): MYE LSOA → MYE LA (borough + 1991–2024) → RM033 → RM012 → RM006
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
@@ -2003,24 +2003,24 @@ with tab2:
     st.markdown(
         "This section maps **how many children live where, by age and sex**, then adds the "
         "**ethnicity and household detail** only the Census can provide. Start with the **Mid-Year "
-        "Estimates** — they are the most up-to-date count — then use the Census tables for ethnicity "
+        "Estimates** - they are the most up-to-date count - then use the Census tables for ethnicity "
         "and household structure.")
     legend_hint("On maps, use the filters to switch age band, sex or category; hover any area for its "
                 "ward and value.")
 
     # ──────────────────────────────────────────────────────────────────────────
-    # 2.1  MYE LSOA — the go-to current age picture
+    # 2.1  MYE LSOA - the go-to current age picture
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 1 · Mid-Year Estimates — children by LSOA (mid-2022 → mid-2024)")
+    st.markdown("### 1 · Mid-Year Estimates - children by LSOA (mid-2022 → mid-2024)")
     st.markdown(
         "**Dataset:** ONS *small-area mid-year population estimates*, Westminster LSOAs. The MYEs are "
         "rebuilt every year, so this is the **most current** view of where children live. They cover "
         "age bands **0–4, 5–9, 10–14, 15–19** and sex, but carry **no ethnicity or household detail** "
         "(use the Census tables below for those).")
     if df_mye_lsoa.empty:
-        st.info("Small-area MYE file not found — upload `Small_Area_Output_Area_Mid_Year_Estimated.xlsx`.")
+        st.info("Small-area MYE file not found - upload `Small_Area_Output_Area_Mid_Year_Estimated.xlsx`.")
     elif lsoa_gj is None:
-        st.info("LSOA boundary file `ONS_LSOA_2021 (1).json` not found — the map needs it to draw areas.")
+        st.info("LSOA boundary file `ONS_LSOA_2021 (1).json` not found - the map needs it to draw areas.")
     else:
         cma, cmb, cmc = st.columns(3)
         yr = cma.selectbox("Year (mid-year)", sorted(df_mye_lsoa["year"].unique(), reverse=True),
@@ -2065,16 +2065,16 @@ with tab2:
 
     st.divider()
     # ──────────────────────────────────────────────────────────────────────────
-    # 2.2  MYE LA — London-borough choropleth + 1991–2024 trend
+    # 2.2  MYE LA - London-borough choropleth + 1991–2024 trend
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 2 · Mid-Year Estimates — London boroughs & long-run trend (1991–2024)")
+    st.markdown("### 2 · Mid-Year Estimates - London boroughs & long-run trend (1991–2024)")
     st.markdown(
         "**Dataset:** ONS *mid-year population estimates*, all 33 London boroughs, **1991–2024**. This "
         "puts Westminster's child numbers in a London-wide context and shows how they have changed over "
         "three decades. Filter by sex and age band; the map shows the chosen year, the line chart the "
         "full back-series.")
     if df_mye_la.empty:
-        st.info("Borough MYE file not found — upload `MYEs_LA_1991_2024_gender.xlsx`.")
+        st.info("Borough MYE file not found - upload `MYEs_LA_1991_2024_gender.xlsx`.")
     else:
         f1, f2, f3 = st.columns(3)
         g_la = f1.selectbox("Sex", ["Total", "Female", "Male"], key="mye_la_sex")
@@ -2097,7 +2097,7 @@ with tab2:
                 id_by_name[str(nm).replace("and Fulham", "& Fulham").replace("and Chelsea", "& Chelsea")] = ft["id"]
             dmap["gid"] = dmap["area"].map(id_by_name)
             dmap2 = dmap.dropna(subset=["gid"])
-            chart_title(f"London boroughs — children {('0–19' if a_la=='All 0–19' else a_la)}, {g_la.lower()}, {y_la}",
+            chart_title(f"London boroughs - children {('0–19' if a_la=='All 0–19' else a_la)}, {g_la.lower()}, {y_la}",
                         "ONS mid-year estimates · Westminster outlined")
             figm = choropleth(borough_gj, dmap2["gid"], dmap2["population"], dmap2["area"],
                               "Children", [[0, "#EDEFF6"], [1, FOCAL]], fmt=":,",
@@ -2105,7 +2105,7 @@ with tab2:
             show_chart(figm, "mye_la_map", "ONS mid-year population estimates, London boroughs")
         else:
             # fallback: ranked bar with Westminster focal
-            chart_title(f"London boroughs — children {('0–19' if a_la=='All 0–19' else a_la)}, {g_la.lower()}, {y_la}",
+            chart_title(f"London boroughs - children {('0–19' if a_la=='All 0–19' else a_la)}, {g_la.lower()}, {y_la}",
                         "ONS mid-year estimates · Westminster in colour")
             dmap = dmap.sort_values("population", ascending=True)
             dmap["col"] = np.where(dmap["area"].str.contains("Westminster"), FOCAL, CONTEXT_BAR)
@@ -2117,7 +2117,7 @@ with tab2:
             show_chart(figb, "mye_la_bar", "ONS mid-year population estimates (borough map file absent)")
 
         # 1991–2024 trend, CIPFA neighbours, Westminster focal
-        chart_title(f"Three decades of change — children {('0–19' if a_la=='All 0–19' else a_la)}, {g_la.lower()}, 1991–2024",
+        chart_title(f"Three decades of change - children {('0–19' if a_la=='All 0–19' else a_la)}, {g_la.lower()}, 1991–2024",
                     "ONS mid-year estimates · Westminster in strong colour, CIPFA neighbours muted")
         figt = go.Figure()
         _bpal = borough_palette(list(NEIGHBOURS))
@@ -2140,29 +2140,29 @@ with tab2:
 
     st.divider()
     # ──────────────────────────────────────────────────────────────────────────
-    # 2.3  RM033 — child's OWN ethnicity (best ethnicity source)
+    # 2.3  RM033 - child's OWN ethnicity (best ethnicity source)
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 3 · Census RM033 — ethnicity of the child (the best ethnicity source)")
+    st.markdown("### 3 · Census RM033 - ethnicity of the child (the best ethnicity source)")
     st.markdown(
-        "**Dataset:** Census 2021 *RM033 — ethnic group of the dependent child by sex*. This is the "
+        "**Dataset:** Census 2021 *RM033 - ethnic group of the dependent child by sex*. This is the "
         "**most policy-relevant** ethnicity table because it records the **child's own ethnicity**, not "
         "a proxy. Use the high-level summary map first, then drill into a specific detailed group "
         "(e.g. *Bangladeshi*, *African*) and, if needed, split by sex.")
     if df_rm033.empty:
-        st.info("RM033 file not found — upload the Census `RM033 … dependent child by sex` table to "
+        st.info("RM033 file not found - upload the Census `RM033 … dependent child by sex` table to "
                 "render these maps. (The loader and maps are ready; they just need the file.)")
     elif lsoa_gj is None:
-        st.info("LSOA boundary file not found — needed to draw the ethnicity maps.")
+        st.info("LSOA boundary file not found - needed to draw the ethnicity maps.")
     else:
         # Summary map: high-level groups, both sexes summed
-        st.markdown("**Summary — high-level ethnic groups (both sexes)**")
+        st.markdown("**Summary - high-level ethnic groups (both sexes)**")
         s1, s2 = st.columns(2)
         hi = s1.selectbox("Ethnic group (high level)", sorted(df_rm033["eth_high"].unique()), key="rm033_hi")
         d = df_rm033[(df_rm033["eth_high"] == hi)]
         d = d[d["sex"].isin(["All"])] if (d["sex"] == "All").any() else d
         d = d.groupby(["LSOA_CODE", "LSOA_NAME"], as_index=False)["count"].sum()
         d = add_ward(d)
-        chart_title(f"Children identifying as {hi} — Census 2021",
+        chart_title(f"Children identifying as {hi} - Census 2021",
                     "RM033 (child's own ethnicity) · darker = more children · hover for ward")
         fig = choropleth(lsoa_gj, d["LSOA_CODE"], d["count"], d["LSOA_NAME"],
                          f"{hi} children", [[0, WCC["light_blue"]], [1, FOCAL]],
@@ -2170,7 +2170,7 @@ with tab2:
         show_chart(fig, "rm033_summary", "Census 2021 RM033")
 
         # Detailed map: sub-category + sex
-        st.markdown("**Detailed — specific ethnic sub-group, optionally by sex**")
+        st.markdown("**Detailed - specific ethnic sub-group, optionally by sex**")
         c1, c2 = st.columns(2)
         det = c1.selectbox("Detailed ethnic group", sorted(df_rm033["eth_detail"].unique()), key="rm033_det")
         sexes = sorted(df_rm033["sex"].unique())
@@ -2178,39 +2178,39 @@ with tab2:
         dd = df_rm033[(df_rm033["eth_detail"] == det) & (df_rm033["sex"] == sx)]
         dd = dd.groupby(["LSOA_CODE", "LSOA_NAME"], as_index=False)["count"].sum()
         dd = add_ward(dd)
-        chart_title(f"{det} children ({sx.lower()}) — Census 2021",
+        chart_title(f"{det} children ({sx.lower()}) - Census 2021",
                     "RM033 detailed sub-category · darker = more children")
         figd = choropleth(lsoa_gj, dd["LSOA_CODE"], dd["count"], dd["LSOA_NAME"],
                           f"{det}", [[0, WCC["light_blue"]], [1, FOCAL_ALT]],
                           wards=dd["Ward"].tolist(), fmt=":,")
         show_chart(figd, "rm033_detail", "Census 2021 RM033")
-        source_line("RM033 records the dependent child's own ethnic group — preferred over household-based "
+        source_line("RM033 records the dependent child's own ethnic group - preferred over household-based "
                     "ethnicity (RM012 below) when the question is about the children themselves.")
 
     st.divider()
     # ──────────────────────────────────────────────────────────────────────────
-    # 2.4  RM012 — children by ethnicity of HRP, by age
+    # 2.4  RM012 - children by ethnicity of HRP, by age
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 4 · Census RM012 — children by household ethnicity & age")
+    st.markdown("### 4 · Census RM012 - children by household ethnicity & age")
     st.markdown(
-        "**Dataset:** Census 2021 *RM012 — dependent children by the ethnic group of the Household "
+        "**Dataset:** Census 2021 *RM012 - dependent children by the ethnic group of the Household "
         "Reference Person (HRP), by age*. The **HRP** is the person in whose name the home is owned or "
-        "rented (or the higher earner) — so this table groups children by their **household's** "
+        "rented (or the higher earner) - so this table groups children by their **household's** "
         "ethnicity rather than their own. It is most useful when the question is about household "
         "context and age structure together. Age bands: **0–2, 3–4, 5–11, 12–15, 16–18**.")
     if df_rm012.empty:
-        st.info("RM012 file not found — upload the Census `RM012 … by HRP ethnic group by age` table. "
+        st.info("RM012 file not found - upload the Census `RM012 … by HRP ethnic group by age` table. "
                 "(Loader and maps are ready.)")
     elif lsoa_gj is None:
-        st.info("LSOA boundary file not found — needed to draw these maps.")
+        st.info("LSOA boundary file not found - needed to draw these maps.")
     else:
         # Summary: all ages 0–18, by HRP group (summary categories first)
-        st.markdown("**Summary — all children 0–18, by household (HRP) ethnic group**")
+        st.markdown("**Summary - all children 0–18, by household (HRP) ethnic group**")
         hg = st.selectbox("HRP ethnic group", sorted(df_rm012["hrp_group"].unique()), key="rm012_hi")
         d = df_rm012[df_rm012["hrp_group"] == hg].groupby(
             ["LSOA_CODE", "LSOA_NAME"], as_index=False)["count"].sum()
         d = add_ward(d)
-        chart_title(f"Children in {hg}-HRP households (all ages 0–18) — Census 2021",
+        chart_title(f"Children in {hg}-HRP households (all ages 0–18) - Census 2021",
                     "RM012 · darker = more children · hover for ward")
         fig = choropleth(lsoa_gj, d["LSOA_CODE"], d["count"], d["LSOA_NAME"],
                          "Children", [[0, WCC["light_blue"]], [1, FOCAL]],
@@ -2218,14 +2218,14 @@ with tab2:
         show_chart(fig, "rm012_summary", "Census 2021 RM012")
 
         # Detailed: HRP group + age band
-        st.markdown("**Detailed — household ethnic group × age band**")
+        st.markdown("**Detailed - household ethnic group × age band**")
         c1, c2 = st.columns(2)
         hg2 = c1.selectbox("HRP ethnic group ", sorted(df_rm012["hrp_group"].unique()), key="rm012_g2")
         ab = c2.selectbox("Age band", sorted(df_rm012["age_band"].unique()), key="rm012_age")
         dd = df_rm012[(df_rm012["hrp_group"] == hg2) & (df_rm012["age_band"] == ab)]
         dd = dd.groupby(["LSOA_CODE", "LSOA_NAME"], as_index=False)["count"].sum()
         dd = add_ward(dd)
-        chart_title(f"{hg2}-HRP households, children aged {ab} — Census 2021",
+        chart_title(f"{hg2}-HRP households, children aged {ab} - Census 2021",
                     "RM012 detailed · darker = more children")
         figd = choropleth(lsoa_gj, dd["LSOA_CODE"], dd["count"], dd["LSOA_NAME"],
                           "Children", [[0, WCC["light_blue"]], [1, FOCAL_ALT]],
@@ -2236,41 +2236,41 @@ with tab2:
 
     st.divider()
     # ──────────────────────────────────────────────────────────────────────────
-    # 2.5  RM006 — age of youngest child by household type (LEAST important; last)
+    # 2.5  RM006 - age of youngest child by household type (LEAST important; last)
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 5 · Census RM006 — household type & age of the youngest child")
+    st.markdown("### 5 · Census RM006 - household type & age of the youngest child")
     st.markdown(
-        "**Dataset:** Census 2021 *RM006 — age of the youngest dependent child by household type*. This "
+        "**Dataset:** Census 2021 *RM006 - age of the youngest dependent child by household type*. This "
         "is the **least central** table for child demographics, so it sits last. It is useful for "
-        "understanding **family structure** — for example where lone-parent households with very young "
+        "understanding **family structure** - for example where lone-parent households with very young "
         "children are concentrated. Household types: one-person, married/civil-partnership couple, "
         "cohabiting couple, lone parent, and multi-person.")
     if df_rm006.empty:
-        st.info("RM006 file not found — upload the Census `RM006 … youngest dependent child by household "
+        st.info("RM006 file not found - upload the Census `RM006 … youngest dependent child by household "
                 "type` table. (Loader and maps are ready.)")
     elif lsoa_gj is None:
-        st.info("LSOA boundary file not found — needed to draw these maps.")
+        st.info("LSOA boundary file not found - needed to draw these maps.")
     else:
-        st.markdown("**Summary — all household types, by age of youngest child**")
+        st.markdown("**Summary - all household types, by age of youngest child**")
         ya = st.selectbox("Age of youngest child", sorted(df_rm006["youngest_age"].unique()), key="rm006_age")
         d = df_rm006[df_rm006["youngest_age"] == ya].groupby(
             ["LSOA_CODE", "LSOA_NAME"], as_index=False)["count"].sum()
         d = add_ward(d)
-        chart_title(f"Households whose youngest child is {ya} — Census 2021",
+        chart_title(f"Households whose youngest child is {ya} - Census 2021",
                     "RM006, all household types · darker = more households")
         fig = choropleth(lsoa_gj, d["LSOA_CODE"], d["count"], d["LSOA_NAME"],
                          "Households", [[0, WCC["light_blue"]], [1, FOCAL]],
                          wards=d["Ward"].tolist(), fmt=":,")
         show_chart(fig, "rm006_summary", "Census 2021 RM006")
 
-        st.markdown("**Detailed — household type × age of youngest child**")
+        st.markdown("**Detailed - household type × age of youngest child**")
         c1, c2 = st.columns(2)
         ht = c1.selectbox("Household type", sorted(df_rm006["household_type"].unique()), key="rm006_ht")
         ya2 = c2.selectbox("Age of youngest child ", sorted(df_rm006["youngest_age"].unique()), key="rm006_age2")
         dd = df_rm006[(df_rm006["household_type"] == ht) & (df_rm006["youngest_age"] == ya2)]
         dd = dd.groupby(["LSOA_CODE", "LSOA_NAME"], as_index=False)["count"].sum()
         dd = add_ward(dd)
-        chart_title(f"{ht} — youngest child {ya2} — Census 2021",
+        chart_title(f"{ht} - youngest child {ya2} - Census 2021",
                     "RM006 detailed · darker = more households")
         figd = choropleth(lsoa_gj, dd["LSOA_CODE"], dd["count"], dd["LSOA_NAME"],
                           "Households", [[0, WCC["light_blue"]], [1, FOCAL_ALT]],
@@ -2280,10 +2280,10 @@ with tab2:
                     "ONS Census 2021, accessed via Nomis. Link to the table from the source list in the sidebar.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 3 — KS4 ATTAINMENT
+# TAB 3 - KS4 ATTAINMENT
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.subheader("Key Stage 4 attainment — Westminster vs CIPFA neighbours")
+    st.subheader("Key Stage 4 attainment - Westminster vs CIPFA neighbours")
     st.markdown(
         "**Dataset:** DfE *Key Stage 4 performance*, accessed via Explore Education Statistics. "
         "**Attainment 8** is a pupil's average grade across eight core GCSE subjects (max 90). Here it "
@@ -2296,7 +2296,7 @@ with tab3:
     if df_ks4_eth.empty:
         st.info("KS4 ethnicity file `data-key-stage-4-performance.csv` not found in the data folder.")
     else:
-        # Shared ethnicity selector — drives BOTH the borough bar and the borough map
+        # Shared ethnicity selector - drives BOTH the borough bar and the borough map
         specific = sorted(g for g in df_ks4_eth["ethnic_group"].dropna().unique()
                           if str(g).lower() not in _ALL_ETH)
         eth_opts = ["Average (all ethnicities)"] + specific
@@ -2315,10 +2315,10 @@ with tab3:
         cipfa = list(NEIGHBOURS)                      # CIPFA borough names (with & )
         bpal = borough_palette(cipfa)
 
-        # ── Borough comparison bar — CIPFA neighbours, each a distinct muted colour
+        # ── Borough comparison bar - CIPFA neighbours, each a distinct muted colour
         bar = base[base["la"].isin(cipfa)].copy().sort_values("att8_2425")
         if not bar.empty:
-            chart_title(f"Attainment 8 across CIPFA neighbours — {sel_eth.lower()} (2024/25)",
+            chart_title(f"Attainment 8 across CIPFA neighbours - {sel_eth.lower()} (2024/25)",
                         "Average Attainment 8 score · each borough its own colour · Westminster strongest")
             figc = go.Figure(go.Bar(
                 x=bar["att8_2425"], y=bar["la"], orientation="h",
@@ -2330,7 +2330,7 @@ with tab3:
             figc.update_layout(height=360)
             show_chart(figc, "ks4_cipfa", "DfE KS4 performance, 2024/25")
 
-        # ── Borough map — same ethnicity selection, kept in the blue map scheme
+        # ── Borough map - same ethnicity selection, kept in the blue map scheme
         if borough_gj is not None and not base.empty:
             id_by_name = {}
             for ft in borough_gj["features"]:
@@ -2342,7 +2342,7 @@ with tab3:
             mp["gid"] = mp["la"].map(id_by_name)
             geo = mp.dropna(subset=["gid"])
             if not geo.empty:
-                chart_title(f"Attainment 8 across inner-London boroughs — {sel_eth.lower()} (2024/25)",
+                chart_title(f"Attainment 8 across inner-London boroughs - {sel_eth.lower()} (2024/25)",
                             "DfE KS4 · darker = higher Attainment 8 · hover for the score")
                 figm = choropleth(borough_gj, geo["gid"], geo["att8_2425"], geo["la"],
                                   "Attainment 8", [[0, "#EDEFF6"], [1, FOCAL]], fmt=":.1f",
@@ -2365,11 +2365,11 @@ with tab3:
             fige.update_yaxes(title="")
             show_chart(fige, "ks4_ethnic", "DfE KS4 performance, 2024/25")
 
-    # ── Attainment 8 over time — CIPFA neighbours each in a distinct muted colour
+    # ── Attainment 8 over time - CIPFA neighbours each in a distinct muted colour
     if df_ks4_ts.empty:
         st.info("KS4 time-series file `data-key-stage-4-performance__1_.csv` not found.")
     else:
-        chart_title("Attainment 8 over time — Westminster vs CIPFA neighbours",
+        chart_title("Attainment 8 over time - Westminster vs CIPFA neighbours",
                     "Average Attainment 8 score · each borough its own colour · Westminster strongest")
         cipfa = list(NEIGHBOURS)
         tpal = borough_palette(cipfa)
@@ -2392,21 +2392,21 @@ with tab3:
                     "Source: DfE Key Stage 4 performance, Explore Education Statistics. See sidebar for link.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 4 — DEPRIVATION (IMD · IDACI · EGDI)
+# TAB 4 - DEPRIVATION (IMD · IDACI · EGDI)
 # ══════════════════════════════════════════════════════════════════════════════
-N_ENGLAND_LSOA = 33755   # England LSOAs (2021) — for national deprivation percentiles
+N_ENGLAND_LSOA = 33755   # England LSOAs (2021) - for national deprivation percentiles
 
 with tab4:
-    st.subheader("Deprivation — three complementary lenses")
+    st.subheader("Deprivation - three complementary lenses")
     st.markdown(
         "Three official measures are used together here, because each answers a different question:\n\n"
-        "- **IMD (Index of Multiple Deprivation 2025)** — the standard **overall** measure of "
+        "- **IMD (Index of Multiple Deprivation 2025)** - the standard **overall** measure of "
         "neighbourhood deprivation, combining income, employment, education, health, crime, housing and "
         "environment into one composite rank. *Where is this neighbourhood deprived overall?*\n"
-        "- **IDACI (Income Deprivation Affecting Children Index)** — a child-specific supplementary "
+        "- **IDACI (Income Deprivation Affecting Children Index)** - a child-specific supplementary "
         "index: the **proportion of children aged 0–15 living in income-deprived families**. This is the "
         "**first go-to for child poverty geography**. *Where are children specifically affected?*\n"
-        "- **EGDI (Ethnic Group Deprivation Index)** — shows whether deprivation within a neighbourhood "
+        "- **EGDI (Ethnic Group Deprivation Index)** - shows whether deprivation within a neighbourhood "
         "falls **unevenly across ethnic groups**. *Is deprivation here shared, or borne disproportionately "
         "by particular ethnic groups?*\n\n"
         "Read IDACI **first** for children, the IMD alongside it for the overall picture, and the EGDI "
@@ -2414,11 +2414,11 @@ with tab4:
     legend_hint("On every map, hover an area for its ward and value; darker shading = more deprived.")
 
     # ──────────────────────────────────────────────────────────────────────────
-    # 4.1  IDACI — children in income-deprived families (first go-to)
+    # 4.1  IDACI - children in income-deprived families (first go-to)
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 1 · IDACI — income deprivation affecting children (first go-to)")
+    st.markdown("### 1 · IDACI - income deprivation affecting children (first go-to)")
     st.markdown(
-        "**Dataset:** IoD 2025 *Income Deprivation Affecting Children Index* — the share of children "
+        "**Dataset:** IoD 2025 *Income Deprivation Affecting Children Index* - the share of children "
         "aged **0–15** in income-deprived families (benefit-unit basis). Lower national **rank** and "
         "lower **decile** mean **more** deprived (decile 1 = worst 10% in England).")
 
@@ -2428,16 +2428,16 @@ with tab4:
         "(top 0.5% nationally), up **+47 percentage points since 2019**. **Westbourne (73%)**, "
         "**Harrow Road (63%)**, **Queen's Park (63%)** and **Pimlico South (62%)** all sit in the worst "
         "**6%** nationally. The **biggest increases** are **Pimlico South (+67ppt, to 99%)** and "
-        "**Little Venice (+64ppt, to 98%)**. Six small areas now exceed **90%** child poverty — **half of "
+        "**Little Venice (+64ppt, to 98%)**. Six small areas now exceed **90%** child poverty - **half of "
         "them in Church Street**. The share of Westminster LSOAs in the **worst 10% nationally has almost "
         "doubled, from ~11% (2019) to ~21% (2025)**; the borough's average IDACI score rose from 18.3% to "
         "**43.5%**, moving its national rank from 96th to **57th of 296**. London boroughs now account for "
         "**5 of the 10** most child-deprived in England.")
 
     if df_idaci.empty:
-        st.info("IDACI file not found — upload `File_3_IoD2025_Supplementary_Indices_IDACI_and_IDAOPI.xlsx`.")
+        st.info("IDACI file not found - upload `File_3_IoD2025_Supplementary_Indices_IDACI_and_IDAOPI.xlsx`.")
     elif lsoa_gj is None:
-        st.info("LSOA boundary file `ONS_LSOA_2021 (1).json` not found — needed to draw the IDACI map.")
+        st.info("LSOA boundary file `ONS_LSOA_2021 (1).json` not found - needed to draw the IDACI map.")
     else:
         di = df_idaci.copy()
         # national deprivation percentile (higher = more deprived) from rank
@@ -2453,11 +2453,11 @@ with tab4:
 
         # Ward-level coverage-weighted map
         st.markdown("**Ward-level IDACI** (LSOA values aggregated to wards using the coverage-weighted "
-                    "LSOA→ward lookup — e.g. an LSOA only 0.01% inside Abbey Road contributes 0.01% of the weight).")
+                    "LSOA→ward lookup - e.g. an LSOA only 0.01% inside Abbey Road contributes 0.01% of the weight).")
         if ward_gj is None:
             st.info("Ward boundary file `Wards_WCC.json` not found.")
         elif ward_lookup.empty:
-            st.info("Ward LSOA lookup (`Ward LSOA Lookup.xlsx`) not found — needed for coverage-weighted "
+            st.info("Ward LSOA lookup (`Ward LSOA Lookup.xlsx`) not found - needed for coverage-weighted "
                     "ward aggregation. The LSOA map above is unaffected; the ward map will render once the "
                     "lookup is supplied.")
         else:
@@ -2497,20 +2497,20 @@ with tab4:
 
     st.divider()
     # ──────────────────────────────────────────────────────────────────────────
-    # 4.2  IMD — overall composite
+    # 4.2  IMD - overall composite
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 2 · IMD — overall neighbourhood deprivation (the composite)")
+    st.markdown("### 2 · IMD - overall neighbourhood deprivation (the composite)")
     st.markdown(
-        "**Dataset:** IoD 2025 *Index of Multiple Deprivation* — the standard **overall** measure. It "
+        "**Dataset:** IoD 2025 *Index of Multiple Deprivation* - the standard **overall** measure. It "
         "combines **seven domains** (income, employment, education, health, crime, barriers to housing & "
         "services, and living environment) into a single national rank, where **1 = most deprived**. "
         "Because it averages across all of life, the IMD can **understate child-specific deprivation** in "
-        "high-cost areas — which is exactly why IDACI (above) is the first go-to for children. Comparing "
+        "high-cost areas - which is exactly why IDACI (above) is the first go-to for children. Comparing "
         "the two maps shows where child poverty is worse than the overall picture suggests.")
     if df_imd.empty:
-        st.info("IMD file not found — upload `File_1_IoD2025_Index_of_Multiple_Deprivation.xlsx`.")
+        st.info("IMD file not found - upload `File_1_IoD2025_Index_of_Multiple_Deprivation.xlsx`.")
     elif lsoa_gj is None:
-        st.info("LSOA boundary file not found — needed to draw the IMD map.")
+        st.info("LSOA boundary file not found - needed to draw the IMD map.")
     else:
         dm = add_ward(df_imd.copy())
         chart_title("Overall deprivation across Westminster's LSOAs (IMD 2025)",
@@ -2524,16 +2524,16 @@ with tab4:
         if pd.notna(idaci_share_t):
             st.info(f"**IMD vs IDACI:** **{imd_share_t:.0f}%** of Westminster's LSOAs fall in the worst "
                     f"national decile on the **overall IMD**, but **{idaci_share_t:.0f}%** do on the "
-                    f"**child-specific IDACI** — confirming that child income-deprivation is **more** "
+                    f"**child-specific IDACI** - confirming that child income-deprivation is **more** "
                     f"widespread than the headline deprivation measure implies.")
         source_line("IMD 2025 combines seven weighted domains into one composite rank. Source: MHCLG "
                     "English Indices of Deprivation 2025 (see sidebar for link).")
 
     st.divider()
     # ──────────────────────────────────────────────────────────────────────────
-    # 4.3  EGDI — ethnic group deprivation
+    # 4.3  EGDI - ethnic group deprivation
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 3 · EGDI — how deprivation is distributed across ethnic groups")
+    st.markdown("### 3 · EGDI - how deprivation is distributed across ethnic groups")
     st.markdown(
         "**Dataset:** *Ethnic Group Deprivation Index (EGDI)*. Where the IMD and IDACI tell you **how "
         "deprived** a neighbourhood is overall, the EGDI tells you whether that deprivation is **shared "
@@ -2544,14 +2544,14 @@ with tab4:
 
     # 4.3a  LA classification
     if df_egdi.empty:
-        st.info("EGDI local-authority profile file `EGDI-Local-Authority-profiles.xlsx` not found — "
+        st.info("EGDI local-authority profile file `EGDI-Local-Authority-profiles.xlsx` not found - "
                 "the classification cards and radar below will render once it is supplied.")
     else:
         wrow = df_egdi[df_egdi["LA_Name"].astype(str).str.contains("Westminster", na=False)]
         if not wrow.empty:
             w = wrow.iloc[0]
-            cat = str(w.get("Category", "—"))
-            flat = str(w.get("Flat", "—"))
+            cat = str(w.get("Category", "-"))
+            flat = str(w.get("Flat", "-"))
             pflat = None
             for cand in ["Pct_bottom20", "Pct_top20"]:
                 if cand in w.index and pd.notna(w.get(cand)):
@@ -2560,13 +2560,13 @@ with tab4:
                         "EGDI local-authority classification · Westminster in colour")
             k1, k2, k3 = st.columns(3)
             k1.metric("EGDI classification", cat)
-            k2.metric("Profile shape", flat if flat not in ("nan", "—") else "See chart")
+            k2.metric("Profile shape", flat if flat not in ("nan", "-") else "See chart")
             if pd.notna(w.get("Total_LSOAs", np.nan)):
                 k3.metric("LSOAs assessed", f"{int(w['Total_LSOAs'])}")
             st.markdown(
                 "**What the classification means.** The EGDI groups local authorities by the *shape* of "
                 "their ethnic-deprivation distribution. A **“flat”** profile means deprivation is spread "
-                "fairly **evenly** across ethnic groups — no single group carries a disproportionate share. "
+                "fairly **evenly** across ethnic groups - no single group carries a disproportionate share. "
                 "A **steep** or **N-shaped** profile means certain ethnic groups are markedly more deprived "
                 "than others in the same neighbourhoods. Reading the bar below shows, LSOA by LSOA, how wide "
                 "that gap between the most- and least-deprived ethnic group actually is.")
@@ -2575,7 +2575,7 @@ with tab4:
             decs = [c for c in df_egdi.columns if c.startswith("Pct_D")]
             if decs:
                 vals = pd.to_numeric(w[decs], errors="coerce").values
-                chart_title("What “flat” looks like — Westminster LSOAs across EGDI deciles",
+                chart_title("What “flat” looks like - Westminster LSOAs across EGDI deciles",
                             "% of Westminster LSOAs in each EGDI decile · an even spread ⇒ a flat profile")
                 figf = go.Figure(go.Bar(
                     x=list(range(1, len(vals) + 1)), y=vals, marker_color=FOCAL,
@@ -2587,7 +2587,7 @@ with tab4:
 
     # 4.3b  Range-by-LSOA bar (with ward detail)
     if df_egdi_lsoa.empty:
-        st.info("EGDI LSOA file `EGDI.xlsx` not found — the LSOA range bar, maps and per-category maps "
+        st.info("EGDI LSOA file `EGDI.xlsx` not found - the LSOA range bar, maps and per-category maps "
                 "below will render once it is supplied. (All loaders and charts are ready.)")
     else:
         el = df_egdi_lsoa.rename(columns={"LSOA21CD": "LSOA_CODE", "LSOA21NM": "LSOA_NAME"}).copy()
@@ -2596,7 +2596,7 @@ with tab4:
             er = el.dropna(subset=["Range"]).sort_values("Range", ascending=True).tail(25)
             chart_title("Where the ethnic-deprivation gap is widest (top 25 LSOAs)",
                         "EGDI range = gap between the most- and least-deprived ethnic group in the LSOA · top three highlighted · ward shown on hover")
-            lbl = np.where(er["Ward"] != "—", er["LSOA_NAME"] + " · " + er["Ward"], er["LSOA_NAME"])
+            lbl = np.where(er["Ward"] != "-", er["LSOA_NAME"] + " · " + er["Ward"], er["LSOA_NAME"])
             top3_cut = er["Range"].nlargest(3).min()          # highlight the three widest gaps only
             bar_cols = np.where(er["Range"] >= top3_cut, FOCAL, CONTEXT_BAR)
             figr = go.Figure(go.Bar(
@@ -2608,14 +2608,14 @@ with tab4:
             figr.update_layout(height=640)
             show_chart(figr, "egdi_range", "EGDI, Westminster LSOAs")
             st.markdown("The widest gaps cluster in the same north-west wards that the IDACI and IMD maps "
-                        "flag — but here the story is **inequality between ethnic groups within** those "
+                        "flag - but here the story is **inequality between ethnic groups within** those "
                         "neighbourhoods, not just their overall deprivation.")
 
         # 4.3c  EGDI LSOA map + ward map
         edi_cols = [c for c in el.columns if c.startswith("EDI.")]
         metric_opts = (["Range"] if "Range" in el.columns else []) + edi_cols
         if metric_opts and lsoa_gj is not None:
-            st.markdown("**EGDI maps** — choose the overall within-LSOA range, or an individual ethnic "
+            st.markdown("**EGDI maps** - choose the overall within-LSOA range, or an individual ethnic "
                         "category's EGDI score.")
             msel = st.selectbox("Metric / ethnic category",
                                 metric_opts,
@@ -2624,7 +2624,7 @@ with tab4:
                                 key="egdi_metric")
             md = el.dropna(subset=[msel])
             nice = "ethnic-deprivation range" if msel == "Range" else msel.replace("EDI.", "").replace(".", " ") + " EGDI"
-            chart_title(f"Westminster LSOAs — {nice} (EGDI)",
+            chart_title(f"Westminster LSOAs - {nice} (EGDI)",
                         "Darker = greater ethnic-group deprivation · hover for ward")
             figm = choropleth(lsoa_gj, md["LSOA_CODE"], md[msel], md["LSOA_NAME"],
                               nice, [[0, WCC["light_blue"]], [1, FOCAL]],
@@ -2636,7 +2636,7 @@ with tab4:
             if ward_gj is None:
                 st.info("Ward boundary file not found.")
             elif ward_lookup.empty:
-                st.info("Ward LSOA lookup not found — the coverage-weighted ward EGDI map will render once "
+                st.info("Ward LSOA lookup not found - the coverage-weighted ward EGDI map will render once "
                         "`Ward LSOA Lookup.xlsx` is supplied.")
             else:
                 wa = coverage_weighted_ward(ward_lookup, md, msel)
@@ -2662,11 +2662,11 @@ with tab4:
     # ──────────────────────────────────────────────────────────────────────────
     # 4.4  CIPFA deprivation profile radar (PROPORTION of LSOAs per decile)
     # ──────────────────────────────────────────────────────────────────────────
-    st.markdown("### 4 · CIPFA deprivation profile — Westminster vs its statistical neighbours")
+    st.markdown("### 4 · CIPFA deprivation profile - Westminster vs its statistical neighbours")
     st.markdown(
         "**Dataset:** IoD 2025 IMD, by local authority. This radar shows, for each CIPFA neighbour, the "
         "**proportion (%) of its LSOAs** falling in each national IMD decile. Proportions are used rather "
-        "than counts because boroughs differ in size — a percentage profile makes the **shape** of "
+        "than counts because boroughs differ in size - a percentage profile makes the **shape** of "
         "deprivation comparable regardless of how many LSOAs a borough has.")
 
     @st.cache_data(show_spinner=False)
@@ -2690,13 +2690,13 @@ with tab4:
     except Exception:
         prof = pd.DataFrame()
     if prof.empty:
-        st.info("IMD file not found — the deprivation-profile radar needs "
+        st.info("IMD file not found - the deprivation-profile radar needs "
                 "`File_1_IoD2025_Index_of_Multiple_Deprivation.xlsx`.")
     else:
         deciles = list(range(1, 11))
         wide = (prof.pivot_table(index="borough", columns="decile", values="pct", fill_value=0)
                 .reindex(columns=deciles, fill_value=0))
-        chart_title("Deprivation profile — share of each borough's LSOAs by IMD decile",
+        chart_title("Deprivation profile - share of each borough's LSOAs by IMD decile",
                     "% of LSOAs in each national decile (1 = most deprived) · Westminster in strong colour")
         figr = go.Figure()
         theta = [f"Decile {d}" for d in deciles] + ["Decile 1"]
@@ -2730,7 +2730,7 @@ with tab4:
                     "Indices of Deprivation 2025.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 5 — CHILDREN & SCHOOLS
+# TAB 5 - CHILDREN & SCHOOLS
 # Pupil numbers, the shift to independent schools, cross-border movement and SEN.
 # Comparators: Westminster · 5 CIPFA neighbours · London · England.
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2738,12 +2738,12 @@ PHASES_MAIN = ["State-funded primary", "State-funded secondary", "State-funded n
                "State-funded special school", "Independent school", "All phases"]
 
 with tab5:
-    st.subheader("Children & schools — a shrinking school-age population")
+    st.subheader("Children & schools - a shrinking school-age population")
     st.markdown(
         "**Datasets:** DfE *School pupils and their characteristics*, DfE *Special educational "
         "needs in England*, and DfE *cross-border movement*. Pupil totals for **London** and "
         "**England** are taken from the SEN publication, which reports the total headcount for "
-        "every phase nationally, regionally and for all 33 London boroughs — so Westminster can "
+        "every phase nationally, regionally and for all 33 London boroughs - so Westminster can "
         "be read against its five CIPFA neighbours **and** the London and England averages.")
 
     if df_sen.empty and df_pupils.empty:
@@ -2765,20 +2765,20 @@ with tab5:
             pl, _ = _chg(prim, LONDON)
             m1, m2, m3, m4 = st.columns(4)
             m1.metric(f"State-funded primary pupils ({_academic_year_label(str(y1)+str(y1+1)[2:])})",
-                      f"{int(pw_now):,}" if pd.notna(pw_now) else "—",
+                      f"{int(pw_now):,}" if pd.notna(pw_now) else "-",
                       delta=f"{pw:+.1f}% since {y0}/{str(y0+1)[2:]}" if pd.notna(pw) else None,
                       help="Westminster resident-funded primary headcount and its change since the baseline year.")
             m2.metric(f"State-funded secondary pupils",
-                      f"{int(sw_now):,}" if pd.notna(sw_now) else "—",
+                      f"{int(sw_now):,}" if pd.notna(sw_now) else "-",
                       delta=f"{sw:+.1f}% since {y0}/{str(y0+1)[2:]}" if pd.notna(sw) else None)
-            m3.metric("Primary change — London", f"{pl:+.1f}%" if pd.notna(pl) else "—",
+            m3.metric("Primary change - London", f"{pl:+.1f}%" if pd.notna(pl) else "-",
                       help="London-wide primary change over the same period, for context.")
             allt = sen_totals(df_sen, "All phases")
             ind = sen_totals(df_sen, "Independent school")
             iw = ind[(ind["geo"] == "Westminster") & (ind["year"] == y1)]["count"].sum()
             aw = allt[(allt["geo"] == "Westminster") & (allt["year"] == y1)]["count"].sum()
-            m4.metric("Pupils in independent schools", f"{(iw/aw*100):.1f}%" if aw else "—",
-                      help="Westminster share of all pupils attending independent schools — "
+            m4.metric("Pupils in independent schools", f"{(iw/aw*100):.1f}%" if aw else "-",
+                      help="Westminster share of all pupils attending independent schools - "
                            "roughly three times the London average.")
 
         st.divider()
@@ -2789,7 +2789,7 @@ with tab5:
             "headcount indexed to its own baseline, so areas of very different size can be compared "
             "on the same axis. Westminster's decline is far steeper than London's or England's.")
         if df_sen.empty:
-            st.info("SEN/pupil totals file not found — needed for this chart.")
+            st.info("SEN/pupil totals file not found - needed for this chart.")
         else:
             c1, c2, c3 = st.columns(3)
             phase_sel = c1.selectbox("School phase", PHASES_MAIN, index=0, key="sch_phase")
@@ -2815,7 +2815,7 @@ with tab5:
                             else "Index (baseline = 100)")
                     fmt = ":.1f"
                 chart_title(
-                    f"{phase_sel} — {mode_sel.lower()}"
+                    f"{phase_sel} - {mode_sel.lower()}"
                     + (f" (baseline {base_sel}/{str(base_sel+1)[2:]})" if mode_sel != "Headcount" else ""),
                     "Westminster in strong colour · boroughs in their own muted colours · "
                     "London and England dashed")
@@ -2844,7 +2844,7 @@ with tab5:
             "matters for planning: a falling state-school roll is driven both by fewer children "
             "overall and by where those children are educated.")
         if df_sen.empty:
-            st.info("Pupil totals file not found — needed for the independent-school share.")
+            st.info("Pupil totals file not found - needed for the independent-school share.")
         else:
             alltot = sen_totals(df_sen, "All phases").rename(columns={"count": "total"})
             indtot = sen_totals(df_sen, "Independent school").rename(columns={"count": "indep"})
@@ -2910,14 +2910,14 @@ with tab5:
 
         st.divider()
         # ── 3 · Cross-border movement ────────────────────────────────────────
-        st.markdown("### 3 · Cross-border movement — where resident pupils go to school")
+        st.markdown("### 3 · Cross-border movement - where resident pupils go to school")
         st.markdown(
             "Resident pupils are not the same as pupils on local school rolls. This table splits "
             "each borough's **resident** maintained-school pupils into those educated **inside** the "
-            "borough and those travelling **outside** it — the basis for Westminster's own "
+            "borough and those travelling **outside** it - the basis for Westminster's own "
             "independent-school estimate (LA resident headcount minus maintained-school residents).")
         if df_xborder.empty:
-            st.info("Cross-border file not found — add "
+            st.info("Cross-border file not found - add "
                     "`cross_border_data_data-school-pupils-and-their-characteristics.csv` to `data`.")
         else:
             cx1, cx2 = st.columns(2)
@@ -2945,7 +2945,7 @@ with tab5:
                 figx.update_layout(height=330)
                 show_chart(figx, "xborder_bar", "DfE cross-border movement")
 
-            st.markdown("#### Independent-school estimate — calculated from source data")
+            st.markdown("#### Independent-school estimate - calculated from source data")
             st.markdown(
                 "This is **computed in the app**, not read from a spreadsheet:\n\n"
                 "> independent = **LA resident headcount** (ONS mid-year estimates, ages 4–10 for "
@@ -2967,7 +2967,7 @@ with tab5:
                 if not ic2.empty:
                     cc_a, cc_b = st.columns(2)
                     with cc_a:
-                        chart_title(f"Estimated independent-school pupils — {ph_x.lower()}",
+                        chart_title(f"Estimated independent-school pupils - {ph_x.lower()}",
                                     "Resident children minus those in maintained schools")
                         pal_i = borough_palette(sorted(ic2["la"].unique()))
                         fig_i1 = go.Figure()
@@ -2981,7 +2981,7 @@ with tab5:
                         fig_i1.update_yaxes(title="Estimated independent-school pupils")
                         show_chart(fig_i1, "indep_calc_n", "Calculated: ONS MYE − DfE cross-border")
                     with cc_b:
-                        chart_title(f"Estimated % in independent schools — {ph_x.lower()}",
+                        chart_title(f"Estimated % in independent schools - {ph_x.lower()}",
                                     "Share of the borough's resident children of that age")
                         fig_i2 = go.Figure()
                         for g in sorted(ic2["la"].unique()):
@@ -3022,7 +3022,7 @@ with tab5:
                         if worst <= 1.0:
                             st.success(
                                 f"✅ **Calculation validated.** Every overlapping row matches the "
-                                f"reference table to within {worst:.1f} percentage points — small "
+                                f"reference table to within {worst:.1f} percentage points - small "
                                 "differences are expected because the reference used the LA-level MYE "
                                 "series while the app uses the LSOA-rebased small-area estimates.")
                         else:
@@ -3032,7 +3032,7 @@ with tab5:
                                 f"⚠️ **Check these rows:** {rows} differ from the reference by more "
                                 f"than 1 percentage point (largest gap {worst:.1f}pp). Note that in "
                                 "the reference spreadsheet the final year (2023/24) was **not** "
-                                "calculated — its `MYE 4-10`/`MYE 11-16` cells are blank and its "
+                                "calculated - its `MYE 4-10`/`MYE 11-16` cells are blank and its "
                                 "percentage was carried over unchanged from 2022/23, with the resident "
                                 "headcount back-derived from it. The app's figure for that year is a "
                                 "genuine calculation, so a gap there is expected and the app's value "
@@ -3047,7 +3047,7 @@ with tab5:
             "support). Westminster's SEN headcount has fallen with its shrinking roll even as the "
             "SEN *rate* has risen.")
         if df_sen.empty:
-            st.info("SEN file not found — add `SEN_data-special-educational-needs-in-england.csv`.")
+            st.info("SEN file not found - add `SEN_data-special-educational-needs-in-england.csv`.")
         else:
             s1, s2, s3 = st.columns(3)
             ph_s = s1.selectbox("Phase", [p for p in PHASES_MAIN if p != "Independent school"],
@@ -3083,7 +3083,7 @@ with tab5:
                     mg = ix; ylab = "Indexed SEN headcount (baseline = 100)"; fmt = ":.1f"
                 else:
                     mg["value"] = mg["sen"]; ylab = "SEN pupils (headcount)"; fmt = ":,"
-                chart_title(f"{meas_s} — {ph_s.lower()}, {prov_s.lower()}",
+                chart_title(f"{meas_s} - {ph_s.lower()}, {prov_s.lower()}",
                             "Westminster in strong colour · London and England dashed")
                 pal3 = borough_palette(sorted(mg["geo"].unique()))
                 figs = go.Figure()
@@ -3121,7 +3121,7 @@ with tab5:
             "Ethnicity is where Westminster diverges most sharply from London: London has seen SEN "
             "numbers rise across nearly every ethnic group, while Westminster's changes are mixed "
             "and, for several groups, strongly negative. Because the overall roll is shrinking, read "
-            "the **rate** alongside the **count** — a falling count can sit with a rising rate.")
+            "the **rate** alongside the **count** - a falling count can sit with a rising rate.")
         if df_sen_eth.empty:
             st.info("SEN-by-ethnicity file not found - add `sen_fsm_eth_lang_new_.csv` to `data/`.")
         else:
@@ -3167,7 +3167,7 @@ with tab5:
                                  ch.groupby("ethnicity")["pct"].mean().sort_values().index.tolist())
                         chart_title(
                             f"Change in SEN pupils by ethnicity, {int(ya)}/{str(int(ya)+1)[2:]} to "
-                            f"{int(yb)}/{str(int(yb)+1)[2:]} — {ph_e.lower()}",
+                            f"{int(yb)}/{str(int(yb)+1)[2:]} - {ph_e.lower()}",
                             "% change in the number of SEN pupils in each ethnic group · "
                             "bars right of zero grew, bars left of zero shrank")
                         pal_e = borough_palette(sorted(ch["geo"].unique()))
@@ -3191,11 +3191,11 @@ with tab5:
                                 names = ", ".join(f"{r.ethnicity} ({r.pct:+.0f}%)"
                                                   for r in down.head(3).itertuples())
                                 st.info(f"**Largest falls in Westminster:** {names}. Compare each "
-                                        "against the London bar beside it — where London rose and "
+                                        "against the London bar beside it - where London rose and "
                                         "Westminster fell, the divergence is specific to the borough "
                                         "rather than a London-wide trend.")
                 else:
-                    chart_title(f"SEN pupils by ethnicity over time — {ph_e.lower()}",
+                    chart_title(f"SEN pupils by ethnicity over time - {ph_e.lower()}",
                                 "Counts by ethnic group · use the legend to isolate a group")
                     tot_e = de.groupby(["year_label", "ethnicity"], as_index=False)["count"].sum()
                     fige3 = px.line(tot_e.sort_values("year_label"), x="year_label", y="count",
@@ -3237,13 +3237,13 @@ with tab5:
                     "and national rows of the SEN publication.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 6 — CHILDCARE COSTS
-# DfE Childcare and early years provider survey — hourly fees across London LAs.
+# TAB 6 - CHILDCARE COSTS
+# DfE Childcare and early years provider survey - hourly fees across London LAs.
 # ══════════════════════════════════════════════════════════════════════════════
 with tab6:
     st.subheader("Childcare costs across London")
     st.markdown(
-        "**Dataset:** DfE *Childcare and early years provider survey* — the hourly fee charged by "
+        "**Dataset:** DfE *Childcare and early years provider survey* - the hourly fee charged by "
         "providers, for **2-year-olds** and **3-and-4-year-olds**, in every London borough. "
         "Childcare cost is one of the pressures behind families leaving high-cost inner London, so "
         "it sits alongside the births and migration evidence in the next tab. "
@@ -3251,7 +3251,7 @@ with tab6:
         "available here; the **London average** shown is the mean across boroughs.")
 
     if df_ccosts.empty:
-        st.info("Childcare cost file not found — add "
+        st.info("Childcare cost file not found - add "
                 "`costs_data-childcare-and-early-years-provider-survey.csv` to the `data` folder.")
     else:
         cc1, cc2, cc3 = st.columns(3)
@@ -3272,15 +3272,15 @@ with tab6:
             rank = int((d[vcol] > wval).sum() + 1) if pd.notna(wval) else None
 
             k1, k2, k3, k4 = st.columns(4)
-            k1.metric(f"Westminster — {meas_c.lower()}",
-                      f"£{wval:.2f}" if pd.notna(wval) else "—",
+            k1.metric(f"Westminster - {meas_c.lower()}",
+                      f"£{wval:.2f}" if pd.notna(wval) else "-",
                       delta=f"{(wval-ldn_avg):+.2f} vs London avg" if pd.notna(wval) else None,
                       delta_color="inverse",
                       help="Hourly childcare fee for the selected age group. Red = more expensive "
                            "than the London average.")
             k2.metric("London average", f"£{ldn_avg:.2f}")
             k3.metric("Westminster rank in London",
-                      f"{rank} of {len(d)}" if rank else "—",
+                      f"{rank} of {len(d)}" if rank else "-",
                       help="1 = most expensive borough in London.")
             prev = df_ccosts[(df_ccosts["child_age"] == age_c) &
                              (df_ccosts["year"] == yr_c - 1) & (df_ccosts["la"] == "Westminster")]
@@ -3289,7 +3289,7 @@ with tab6:
                 k4.metric(f"Change since {yr_c-1}", f"{(wval/pv-1)*100:+.1f}%",
                           delta_color="inverse")
             else:
-                k4.metric(f"Change since {yr_c-1}", "—")
+                k4.metric(f"Change since {yr_c-1}", "-")
 
             # ── ranked bar across all London boroughs
             dr = d.sort_values(vcol)
@@ -3328,7 +3328,7 @@ with tab6:
                     dm["gid"] = dm["la"].map(id_by_name)
                 dm = dm.dropna(subset=["gid"])
                 if not dm.empty:
-                    chart_title(f"Where childcare costs most — {age_c}, {yr_c}",
+                    chart_title(f"Where childcare costs most - {age_c}, {yr_c}",
                                 "Darker = more expensive per hour · hover for the borough fee")
                     figmm = choropleth(borough_gj, dm["gid"], dm[vcol], dm["la"],
                                        f"{meas_c} (£)", [[0, WCC["light_blue"]], [1, FOCAL]],
@@ -3356,7 +3356,7 @@ with tab6:
             show_chart(figg, "cc_group", "DfE childcare and early years provider survey")
 
             # affordability framing
-            st.info("**Reading these figures:** hourly fees are only half the affordability picture — "
+            st.info("**Reading these figures:** hourly fees are only half the affordability picture - "
                     "the other half is local earnings. Westminster combines high fees with high median "
                     "pay, so its *affordability ratio* is better than boroughs with similar fees but "
                     "lower wages. Where a fee-to-earnings ratio is needed, pair this with ONS "
@@ -3367,9 +3367,9 @@ with tab6:
                     "paid by parents after free-entitlement hours and subsidies.")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 7 — BIRTHS, MIGRATION & CHILD POPULATION DECLINE
+# TAB 7 - BIRTHS, MIGRATION & CHILD POPULATION DECLINE
 # The demographic drivers: fewer births, net outflow of families, and the
-# resulting decline in the school-age cohort — with a simple forward projection.
+# resulting decline in the school-age cohort - with a simple forward projection.
 # ══════════════════════════════════════════════════════════════════════════════
 with tab7:
     st.subheader("Why the child population is falling")
@@ -3432,7 +3432,7 @@ with tab7:
         st.info(
             "**Births data not loaded.** The app looks for `births_by_age_of_mother.csv` in the "
             "`data` folder and, if it isn't there, calls the Nomis API (dataset NM_205_1) directly. "
-            "Add the CSV to `data/` for a fast, offline-safe load — the API call is skipped whenever "
+            "Add the CSV to `data/` for a fast, offline-safe load - the API call is skipped whenever "
             "the file is present. Once loaded, this section shows total births by borough over time "
             "and the age-of-mother breakdown.")
     else:
@@ -3451,7 +3451,7 @@ with tab7:
         rng_b = st.slider("Years", yr_min, yr_max, (yr_min, yr_max), key="b_years")
         db = db[(db["year"] >= rng_b[0]) & (db["year"] <= rng_b[1])]
         if not db.empty:
-            chart_title(f"Live births by borough — {age_b.lower()}",
+            chart_title(f"Live births by borough - {age_b.lower()}",
                         "Westminster in strong colour · comparators muted")
             palb = borough_palette(sorted(db["la"].unique()))
             figb = go.Figure()
@@ -3485,7 +3485,7 @@ with tab7:
                 show_chart(figbi, "births_index", "ONS births via Nomis")
 
     # ── fertility rates (CBR · GFR · TFR) ─────────────────────────────────────
-    st.markdown("**Fertility rates — CBR, GFR and TFR**")
+    st.markdown("**Fertility rates - CBR, GFR and TFR**")
     st.markdown(
         "Birth *counts* fall when there are fewer women of childbearing age, even if each woman has "
         "the same number of children. Fertility **rates** strip that out: the **GFR** is births per "
@@ -3501,7 +3501,7 @@ with tab7:
             "**Fertility rates not loaded.** The app reads Nomis dataset **NM_207_1** (total "
             "fertility rate, general fertility rate, crude birth rate and the age-specific rates) "
             "for all London boroughs plus London and England. It looks for "
-            "`fertility_rates.csv` in `data/` first and calls the Nomis API if that is absent — so "
+            "`fertility_rates.csv` in `data/` first and calls the Nomis API if that is absent - so "
             "this message means both routes were unavailable (most likely no network access from "
             "the server). Saving the API response to `data/fertility_rates.csv` fixes it "
             "permanently. As an alternative the app can derive the GFR and TFR itself if you add "
@@ -3542,10 +3542,10 @@ with tab7:
     # ── births by LSOA map ────────────────────────────────────────────────────
     st.markdown("**Births by Westminster LSOA, over time**")
     if df_births_lsoa.empty:
-        st.info("LSOA-level births not loaded — add `births_by_lsoa.csv` (Nomis dataset NM_206_1) "
+        st.info("LSOA-level births not loaded - add `births_by_lsoa.csv` (Nomis dataset NM_206_1) "
                 "to the `data` folder to enable the small-area births map and its year slider.")
     elif lsoa_gj is None:
-        st.info("LSOA boundary file not found — needed to draw the births map.")
+        st.info("LSOA boundary file not found - needed to draw the births map.")
     else:
         yrs_l = sorted(df_births_lsoa["year"].unique())
         view_bl = st.radio("View", ["Single year", "Change between two years"],
@@ -3580,11 +3580,11 @@ with tab7:
     st.markdown(
         "Internal migration is movement **within the UK**. Westminster loses children in every "
         "primary and secondary age band but gains sharply at 15–19, when students and young adults "
-        "move in — so a single 'all ages' figure hides what is happening to families.")
+        "move in - so a single 'all ages' figure hides what is happening to families.")
     if df_migr.empty:
         st.info("Internal migration data not found. Add the small pre-aggregated file "
                 "`internal_migration_children_2024.csv` to `data/` (recommended), or the full ONS "
-                "workbook `detailedestimates2024on2023las.xlsx` — the app will aggregate it, but "
+                "workbook `detailedestimates2024on2023las.xlsx` - the app will aggregate it, but "
                 "that takes several minutes on first load.")
     else:
         g1, g2 = st.columns(2)
@@ -3594,7 +3594,7 @@ with tab7:
         mcol = {"Net migration": "net", "Inflow": "inflow", "Outflow": "outflow"}[meas_m]
         dm2 = df_migr[df_migr["age_band"] == band_m].copy()
 
-        # Westminster's own age profile — the key insight
+        # Westminster's own age profile - the key insight
         wprof = df_migr[(df_migr["area_code"] == "E09000033") &
                         (df_migr["age_band"].isin(["0-4", "5-9", "10-14", "15-19"]))]
         if not wprof.empty:
@@ -3642,7 +3642,7 @@ with tab7:
                 show_chart(figmg, "mig_map", "ONS internal migration detailed estimates, 2024")
 
                 rank_m = dmap.sort_values(mcol)
-                chart_title(f"London boroughs ranked — {meas_m.lower()}, ages {band_m} (2024)",
+                chart_title(f"London boroughs ranked - {meas_m.lower()}, ages {band_m} (2024)",
                             "Westminster highlighted")
                 colr = np.where(rank_m["name"] == "Westminster", FOCAL, CONTEXT_BAR)
                 figrm = go.Figure(go.Bar(
@@ -3688,7 +3688,7 @@ with tab7:
                 ic = ic.rename(columns={"geo": "la"}); ycol, ylab, fmt = "value", f"% change since {int(dc['year'].min())}", ":.1f"
             else:
                 ic = dc.rename(columns={"population": "value"}); ycol, ylab, fmt = "value", "Resident children", ":,"
-            chart_title(f"{coh} — {mode_c.lower()}",
+            chart_title(f"{coh} - {mode_c.lower()}",
                         "ONS mid-year estimates by single year of age · Westminster in strong colour")
             palcc = borough_palette(sorted(ic["la"].unique()))
             figcc = go.Figure()
@@ -3711,10 +3711,10 @@ with tab7:
     st.markdown(
         "The chart below tracks Westminster's resident child population and extends the recent "
         "trend forward. The projection is a **simple linear extrapolation** of the most recent "
-        "years — it is a trend indicator, not an official ONS projection, and it assumes migration "
+        "years - it is a trend indicator, not an official ONS projection, and it assumes migration "
         "and birth patterns continue unchanged.")
     if df_mye_la.empty:
-        st.info("Borough mid-year estimates not found — needed for the population trend.")
+        st.info("Borough mid-year estimates not found - needed for the population trend.")
     else:
         p1, p2, p3 = st.columns(3)
         age_p = p1.selectbox("Age band", ["All 0–19"] + MYE_AGE_ORDER, key="proj_age")
@@ -3729,7 +3729,7 @@ with tab7:
         if dpop.empty:
             st.info("No population data for that selection.")
         else:
-            chart_title(f"Child population and projected trend to {to_p} — {age_p.lower()}",
+            chart_title(f"Child population and projected trend to {to_p} - {age_p.lower()}",
                         "Solid = ONS mid-year estimates · dotted = linear projection of the recent trend")
             palp = borough_palette(sorted(dpop["area"].unique()))
             figpj = go.Figure()
@@ -3762,12 +3762,12 @@ with tab7:
                     st.warning(
                         f"**On the trend of the last {fit_p} years**, Westminster's {age_p.lower()} "
                         f"population would fall from **{now:,.0f}** in {int(sw['year'].iloc[-1])} to "
-                        f"about **{proj:,.0f}** by {to_p} — a change of **{(proj/now-1)*100:+.0f}%**. "
+                        f"about **{proj:,.0f}** by {to_p} - a change of **{(proj/now-1)*100:+.0f}%**. "
                         "Treat this as a direction of travel, not a forecast: it assumes the recent "
                         "rate of decline simply continues.")
 
     source_line("Births: ONS birth registrations via Nomis (see the User guide to birth statistics "
-                "for definitions — births are assigned to the mother's usual residence). Internal "
+                "for definitions - births are assigned to the mother's usual residence). Internal "
                 "migration: ONS detailed internal-migration estimates, 2024 (within-UK moves only; "
                 "international migration is excluded). Population: ONS mid-year estimates. "
                 "Projections are a simple linear extrapolation by this app, not an official projection.")
