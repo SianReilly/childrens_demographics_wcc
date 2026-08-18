@@ -1768,15 +1768,15 @@ c4.metric("LSOAs in worst 10% — overall (IMD 2025)",
 st.divider()
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab0, tab7, tab2, tab1, tab5, tab6, tab3, tab4 = st.tabs([
     "🏠 Overview",
-    "📍 Child Poverty",
+    "📉 Births, Migration & Decline",
     "🗺️ Population & Demographics",
-    "📚 KS4 Attainment",
-    "⚖️ Deprivation (IMD · IDACI · EGDI)",
+    "📍 Child Poverty",
     "🎒 Children & Schools",
     "🧸 Childcare Costs",
-    "📉 Births, Migration & Decline",
+    "📚 KS4 Attainment",
+    "⚖️ Deprivation (IMD · IDACI · EGDI)",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -3142,7 +3142,34 @@ with tab5:
                     fige3.update_xaxes(title="Academic year")
                     fige3.update_yaxes(title="SEN pupils")
                     show_chart(fige3, "sen_eth_ts", "DfE SEN in England, by ethnicity")
-
+        if not df_fsm_lang.empty:
+            st.markdown("**FSM eligibility and first language, alongside the SEN picture**")
+            fl = df_fsm_lang.copy()
+            if EXCLUDE_CITY_LONDON:
+                fl = fl[fl["geo"] != "City of London"]
+            fl = fl[(fl["provision"] == "Total") &
+                    (fl["metric"].isin(["FSM eligible", "Other first language"]))]
+            f1, f2 = st.columns(2)
+            metric_f = f1.selectbox("Metric", ["FSM eligible", "Other first language"], key="fl_metric")
+            geo_f = f2.multiselect("Areas", sorted(fl["geo"].unique()),
+                                   default=[g for g in ["Westminster", "London"] if g in set(fl["geo"])],
+                                   key="fl_geos")
+            dff = fl[(fl["metric"] == metric_f) & (fl["geo"].isin(geo_f))]
+            dff = dff.groupby(["year", "year_label", "geo"], as_index=False)["count"].sum()
+            if not dff.empty:
+                chart_title(f"Pupils recorded as '{metric_f.lower()}' over time",
+                            "Westminster in strong colour, London dashed")
+                palf = borough_palette(sorted(dff["geo"].unique()))
+                figf = go.Figure()
+                for g in sorted(dff["geo"].unique(), key=lambda x: (x in AVERAGE_COLOURS, x)):
+                    s = dff[dff["geo"] == g].sort_values("year")
+                    figf.add_trace(go.Scatter(
+                        x=s["year_label"], y=s["count"], mode="lines+markers", name=g,
+                        line=dict(color=palf.get(g, CONTEXT_LINE), **line_style(g)),
+                        hovertemplate="<b>" + g + "</b><br>%{x}: %{y:,.0f}<extra></extra>"))
+                figf.update_xaxes(title="Academic year")
+                figf.update_yaxes(title="Pupils")
+                show_chart(figf, "fsm_lang_trend", "DfE SEN/FSM/language by ethnicity, London")
         source_line("Pupil totals, independent-school shares and SEN counts: DfE Explore Education "
                     "Statistics (School pupils and their characteristics; Special educational needs "
                     "in England; cross-border movement). London and England totals are the regional "
