@@ -188,6 +188,14 @@ st.markdown(f"""<style>
       color:#5d4b00; margin:4px 0 10px 0; border-left:3px solid {WCC['yellow']}; }}
   .ds-card {{ background:{WCC['light_blue']}; border-radius:6px; padding:12px 16px;
       margin-bottom:10px; border-left:4px solid {WCC['cobalt']}; }}
+  div[data-baseweb="select"] > div, div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {{
+      border:1.5px solid {WCC['blue']}66 !important; border-radius:6px !important;
+      background-color:#fff !important; }}
+  div[data-baseweb="select"] > div:hover {{ border-color:{WCC['blue']} !important; }}
+  div[data-baseweb="select"] > div:focus-within {{
+      border-color:{WCC['cobalt']} !important; box-shadow:0 0 0 1px {WCC['cobalt']} !important; }}
+  .stSelectbox label, .stMultiSelect label, .stRadio label, .stSlider label {{
+      font-weight:600 !important; color:{WCC['blue']} !important; }}
 </style>""", unsafe_allow_html=True)
 
 # Plotly modebar exports PNG (not SVG/HTML) so the camera icon always yields a
