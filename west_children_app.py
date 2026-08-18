@@ -1692,7 +1692,8 @@ with st.spinner("Loading datasets…"):
     df_syoa      = _safe_load(load_pop_syoa, pd.DataFrame())
     df_wcc_syoa  = _safe_load(load_mye_syoa_wcc, pd.DataFrame(), "Small_Area_Output_Area_Mid_Year_Estimated.xlsx")
     df_indep_calc = compute_independent_estimate(df_xborder, df_syoa, df_wcc_syoa)
-    df_sen_eth   = _safe_load(load_sen_ethnicity, pd.DataFrame())
+    df_sen_eth   = _safe_load(load_sen_ethnicity, pd.DataFrame(), "sen_fsm_eth_lang_new_.csv")
+    df_fsm_lang  = _safe_load(load_fsm_language,  pd.DataFrame(), "sen_fsm_eth_lang_new_.csv")
     df_fert      = _safe_load(load_fertility_rates, pd.DataFrame())
     df_fpop      = _safe_load(load_female_pop, pd.DataFrame())
 
